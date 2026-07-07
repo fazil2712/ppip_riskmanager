@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>PORTAL RISIKO - Pengendalian Risiko</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <style>
+        .layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .profile-section {
+            padding: 0 20px 20px 20px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .profile-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #ddd;
+            display: inline-block;
+        }
+        .menu-item {
+            padding: 12px 20px; color: var(--text-muted); text-decoration: none; display: block; font-weight: 500;
+        }
+        .menu-item:hover, .menu-item.active { background: #f8f9fa; color: var(--primary-blue); border-left: 4px solid var(--primary-yellow); }
+        .main-content { flex: 1; padding: 20px 40px; background: white; }
+        
+        .form-section {
+            border: 1px solid #eee;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            background: #fdfdfd;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-top: 5px;
+            font-family: var(--font-family);
+        }
+        .btn-save {
+            background-color: var(--card-teal);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <div class="sidebar">
+            <div style="padding: 0 20px 20px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; margin-bottom: 20px;">
+                <img th:src="@{/img/logo.webp}" alt="Logo" style="width: 40px; height: auto;">
+                <div style="font-weight: 700; color: var(--primary-blue); font-size: 14px; line-height: 1.2;">
+                    PUPUK SRIWIDJAJA<br>PALEMBANG
+                </div>
+            </div>
+            <div class="profile-section">
+                <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/uploads/' + ${session.loggedInUser.fotoProfil}}" class="profile-pic" style="object-fit:cover;" alt="Profile">
+                <div th:unless="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" class="profile-pic"></div>
+                <div>
+                    <div style="font-size:12px; color:var(--text-muted);">Selamat datang</div>
+                    <div style="font-weight:600; font-size:14px; margin-top:2px; color:var(--primary-blue);" th:text="${session.loggedInUser != null ? session.loggedInUser.nama : 'Unknown User'}">Hendi Aprian Lesmana</div>
+                    <div style="font-weight:600; font-size:13px; color:var(--text-muted);" th:text="${session.loggedInUser != null ? '(' + session.loggedInUser.badgeId + ')' : '(Guest)'}">(081456)</div>
+                </div>
+            </div>
+            <div style="padding: 0 20px 20px 20px; border-bottom: 1px solid #eee;">
+                <small style="color:var(--text-muted)" th:text="${session.loggedInUser != null ? session.loggedInUser.departemen : 'Unknown Dept'}">DEP.TATA KELOLA & MANAJEMEN RISIKO</small><br>
+                <small style="color:var(--primary-yellow); font-weight:bold;">Role: <span th:text="${session.loggedInUser != null ? session.loggedInUser.role : 'None'}">CORPORATE RISK OFFICER</span></small>
+            </div>
+            <a th:href="@{/dashboard}" class="menu-item">Dashboard</a>
+            <div style="padding: 12px 20px; font-weight:600; color:#333;">RISIKO</div>
+            
+            <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin}" class="menu-item" style="padding-left: 40px; color: #dc3545;">
+                ⚙️ Admin Panel
+            </a>
+
+            <a href="#" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
+            <a th:href="@{/pengendalian}" class="menu-item active" style="padding-left: 40px;">Pengendalian Risiko</a>
+            <a href="#" class="menu-item" style="padding-left: 40px;">Report</a>
+            
+            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;">Log Out</a>
+        </div>
+        <div class="main-content">
+            <h3>Detail Risiko</h3>
+            
+            <div class="form-section">
+                <form action="#" method="post">
+                    <div style="margin-bottom:15px;">
+                        <input type="file" name="fileBukti">
+                    </div>
+                    
+                    <div style="margin-bottom:15px;">
+                        <label>Isi Realisasi Pengendalian risiko yang telah dilakukan s.d Triwulan-I tahun 2023....</label>
+                        <textarea class="form-control" rows="4" name="deskripsiRealisasi"></textarea>
+                    </div>
+                    
+                    <div style="margin-bottom:15px; width: 300px;">
+                        <label>Biaya (bila ada) :</label>
+                        <input type="number" class="form-control" name="biaya" value="0.00" step="0.01">
+                    </div>
+                    
+                    <button type="button" class="btn-save">SIMPAN</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

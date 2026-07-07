@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>PORTAL RISIKO - Admin Panel</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <style>
+        .layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .profile-section {
+            padding: 0 20px 20px 20px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .profile-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #ddd;
+            display: inline-block;
+            object-fit: cover;
+        }
+        .menu-item {
+            padding: 12px 20px; color: var(--text-muted); text-decoration: none; display: block; font-weight: 500;
+        }
+        .menu-item:hover, .menu-item.active { background: #f8f9fa; color: var(--primary-blue); border-left: 4px solid var(--primary-yellow); }
+        .main-content { flex: 1; padding: 20px 40px; background: white; }
+        
+        .card {
+            border: 1px solid #eee;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            background: #fdfdfd;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-top: 5px;
+            font-family: var(--font-family);
+        }
+        .btn-save {
+            background-color: var(--card-teal);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .btn-delete {
+            background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; text-decoration: none; display: inline-block;
+        }
+        .btn-edit {
+            background-color: #ffc107; color: #333; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: var(--primary-blue);
+        }
+        
+        .alert-success { background-color: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+        .alert-error { background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+        
+        /* Modal Styles */
+        .modal {
+            display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 60%; border-radius: 8px;
+        }
+        .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-btn:hover { color: black; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <div class="sidebar">
+            <div style="padding: 0 20px 20px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; margin-bottom: 20px;">
+                <img th:src="@{/img/logo.webp}" alt="Logo" style="width: 40px; height: auto;">
+                <div style="font-weight: 700; color: var(--primary-blue); font-size: 14px; line-height: 1.2;">
+                    PUPUK SRIWIDJAJA<br>PALEMBANG
+                </div>
+            </div>
+            <div class="profile-section">
+                <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/uploads/' + ${session.loggedInUser.fotoProfil}}" class="profile-pic" style="object-fit:cover;" alt="Profile">
+                <div th:unless="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" class="profile-pic"></div>
+                <div>
+                    <div style="font-size:12px; color:var(--text-muted);">Selamat datang</div>
+                    <div style="font-weight:600; font-size:14px; margin-top:2px; color:var(--primary-blue);" th:text="${session.loggedInUser != null ? session.loggedInUser.nama : 'Unknown User'}">Hendi Aprian Lesmana</div>
+                    <div style="font-weight:600; font-size:13px; color:var(--text-muted);" th:text="${session.loggedInUser != null ? '(' + session.loggedInUser.badgeId + ')' : '(Guest)'}">(081456)</div>
+                </div>
+            </div>
+            <div style="padding: 0 20px 20px 20px; border-bottom: 1px solid #eee;">
+                <small style="color:var(--text-muted)" th:text="${session.loggedInUser != null ? session.loggedInUser.departemen : 'Unknown Dept'}">DEP.TATA KELOLA & MANAJEMEN RISIKO</small><br>
+                <small style="color:var(--primary-yellow); font-weight:bold;">Role: <span th:text="${session.loggedInUser != null ? session.loggedInUser.role : 'None'}">CORPORATE RISK OFFICER</span></small>
+            </div>
+            <a th:href="@{/dashboard}" class="menu-item">Dashboard</a>
+            <div style="padding: 12px 20px; font-weight:600; color:#333;">RISIKO</div>
+            
+            <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin}" class="menu-item active" style="padding-left: 40px; color: #dc3545;">
+                ⚙️ Admin Panel
+            </a>
+
+            <a href="#" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
+            <a th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
+            <a href="#" class="menu-item" style="padding-left: 40px;">Report</a>
+            
+            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;">Log Out</a>
+        </div>
+        
+        <div class="main-content">
+            <h2 style="color: var(--primary-blue); margin-top: 0;">Admin Panel</h2>
+            
+            <div th:if="${successMessage}" class="alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert-error" th:text="${errorMessage}"></div>
+            
+            <div class="card">
+                <h3 style="margin-top:0;">Register New Account</h3>
+                <form th:action="@{/admin/register}" method="post" enctype="multipart/form-data">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <label>Username</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+                        <div>
+                            <label>Badge ID</label>
+                            <input type="text" class="form-control" name="badgeId" required>
+                        </div>
+                        <div>
+                            <label>Email</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div>
+                            <label>Full Name (Nama)</label>
+                            <input type="text" class="form-control" name="nama" required>
+                        </div>
+                        <div>
+                            <label>Password</label>
+                            <input type="password" class="form-control" name="password" required>
+                        </div>
+                        <div>
+                            <label>Role</label>
+                            <select class="form-control" name="role" required>
+                                <option value="RiskOfficer">RiskOfficer</option>
+                                <option value="RiskOwner">RiskOwner</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Departemen</label>
+                            <input type="text" class="form-control" name="departemen" required>
+                        </div>
+                        <div>
+                            <label>Profile Picture (Max 10MB)</label>
+                            <input type="file" class="form-control" name="file" accept="image/*">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-save">REGISTER USER</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h3 style="margin-top:0;">Existing Accounts</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">Pic</th>
+                            <th>Badge ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Nama</th>
+                            <th>Role</th>
+                            <th>Departemen</th>
+                            <th style="width: 120px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="u : ${users}">
+                            <td>
+                                <img th:if="${u.fotoProfil != null}" th:src="@{'/uploads/' + ${u.fotoProfil}}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;" alt="Pic">
+                                <div th:unless="${u.fotoProfil != null}" style="width:40px; height:40px; border-radius:50%; background:#ddd;"></div>
+                            </td>
+                            <td th:text="${u.badgeId}">000000</td>
+                            <td th:text="${u.username}">admin</td>
+                            <td th:text="${u.email}">admin@example.com</td>
+                            <td th:text="${u.nama}">Admin User</td>
+                            <td>
+                                <strong th:if="${u.role == 'Admin'}" style="color: #dc3545;" th:text="${u.role}">Admin</strong>
+                                <span th:if="${u.role != 'Admin'}" th:text="${u.role}">User</span>
+                            </td>
+                            <td th:text="${u.departemen}">IT</td>
+                            <td>
+                                <button type="button" class="btn-edit" 
+                                        th:data-id="${u.id}" 
+                                        th:data-username="${u.username}" 
+                                        th:data-email="${u.email}"
+                                        th:data-badgeid="${u.badgeId}"
+                                        th:data-nama="${u.nama}"
+                                        th:data-role="${u.role}"
+                                        th:data-departemen="${u.departemen}"
+                                        onclick="openEditModal(this)">Edit</button>
+                                <a th:href="@{'/admin/delete/' + ${u.id}}" class="btn-delete" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Project Table -->
+            <div class="card">
+                <h3 style="margin-top:0;">Kelola Proyek Risiko</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Risiko</th>
+                            <th>Nama Project</th>
+                            <th>Dibuat Oleh</th>
+                            <th>Tahun / Kuartal</th>
+                            <th>Risk Level</th>
+                            <th>Status</th>
+                            <th style="width: 120px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="p : ${projects}">
+                            <td th:text="${p.idRisiko}"></td>
+                            <td th:text="${p.namaProject}"></td>
+                            <td th:text="${p.dibuatOleh}"></td>
+                            <td th:text="${p.tahun + ' / ' + p.kuartal}"></td>
+                            <td>
+                                <strong th:if="${p.riskLevel == 'HIGH'}" style="color: #dc3545;">HIGH</strong>
+                                <strong th:if="${p.riskLevel == 'MEDIUM'}" style="color: #ffc107;">MEDIUM</strong>
+                                <strong th:if="${p.riskLevel == 'LOW'}" style="color: #28a745;">LOW</strong>
+                            </td>
+                            <td th:text="${p.status}"></td>
+                            <td>
+                                <button type="button" class="btn-edit" 
+                                        th:data-id="${p.id}" 
+                                        th:data-namaproject="${p.namaProject}" 
+                                        th:data-idrisiko="${p.idRisiko}"
+                                        th:data-dibuatoleh="${p.dibuatOleh}"
+                                        th:data-unitkerja="${p.unitKerja}"
+                                        th:data-sasaran="${p.sasaranUnitKerja}"
+                                        th:data-eksternal="${p.konteksEksternal}"
+                                        th:data-internal="${p.konteksInternal}"
+                                        th:data-risiko="${p.risiko}"
+                                        th:data-bidang="${p.bidang}"
+                                        th:data-penyebab="${p.penyebab}"
+                                        th:data-dampak="${p.dampak}"
+                                        th:data-tahun="${p.tahun}"
+                                        th:data-kuartal="${p.kuartal}"
+                                        th:data-peluang="${p.peluangScore}"
+                                        th:data-dampakscore="${p.dampakScore}"
+                                        th:data-status="${p.status}"
+                                        onclick="openEditProjectModal(this)">Edit</button>
+                                <a th:href="@{'/admin/project/delete/' + ${p.id}}" class="btn-delete" onclick="return confirm('Delete this project?');">Delete</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeEditModal()">&times;</span>
+            <h3 style="margin-top:0; color: var(--primary-blue);">Edit User</h3>
+            <form th:action="@{/admin/edit}" method="post" enctype="multipart/form-data">
+                <input type="hidden" id="edit-id" name="id">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <label>Username</label>
+                        <input type="text" class="form-control" id="edit-username" name="username" required>
+                    </div>
+                    <div>
+                        <label>Badge ID</label>
+                        <input type="text" class="form-control" id="edit-badgeId" name="badgeId" required>
+                    </div>
+                    <div>
+                        <label>Email</label>
+                        <input type="email" class="form-control" id="edit-email" name="email" required>
+                    </div>
+                    <div>
+                        <label>Full Name (Nama)</label>
+                        <input type="text" class="form-control" id="edit-nama" name="nama" required>
+                    </div>
+                    <div>
+                        <label>Role</label>
+                        <select class="form-control" id="edit-role" name="role" required>
+                            <option value="RiskOfficer">RiskOfficer</option>
+                            <option value="RiskOwner">RiskOwner</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Departemen</label>
+                        <input type="text" class="form-control" id="edit-departemen" name="departemen" required>
+                    </div>
+                    <div style="grid-column: 1 / span 2;">
+                        <label>Update Profile Picture (Max 10MB) - <i>Optional</i></label>
+                        <input type="file" class="form-control" name="file" accept="image/*">
+                    </div>
+                </div>
+                <button type="submit" class="btn-save" style="background-color: #ffc107; color:#333;">UPDATE USER</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Project Modal -->
+    <div id="editProjectModal" class="modal">
+        <div class="modal-content" style="width: 80%;">
+            <span class="close-btn" onclick="closeEditProjectModal()">&times;</span>
+            <h3 style="margin-top:0; color: var(--primary-blue);">Edit Project</h3>
+            <form th:action="@{/admin/project/edit}" method="post">
+                <input type="hidden" id="edit-p-id" name="id">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                    <div><label>Nama Project</label><input type="text" class="form-control" id="edit-p-namaProject" name="namaProject" required></div>
+                    <div><label>ID Risiko</label><input type="text" class="form-control" id="edit-p-idRisiko" name="idRisiko" required></div>
+                    <div><label>Dibuat Oleh</label><input type="text" class="form-control" id="edit-p-dibuatOleh" name="dibuatOleh" required></div>
+                    
+                    <div><label>Unit Kerja</label><input type="text" class="form-control" id="edit-p-unitKerja" name="unitKerja" required></div>
+                    <div><label>Sasaran Unit Kerja</label><input type="text" class="form-control" id="edit-p-sasaran" name="sasaranUnitKerja" required></div>
+                    <div><label>Bidang Risiko</label><input type="text" class="form-control" id="edit-p-bidang" name="bidang" required></div>
+                    
+                    <div><label>Konteks Eksternal</label><textarea class="form-control" id="edit-p-eksternal" name="konteksEksternal" required></textarea></div>
+                    <div><label>Konteks Internal</label><textarea class="form-control" id="edit-p-internal" name="konteksInternal" required></textarea></div>
+                    <div><label>Peristiwa Risiko</label><textarea class="form-control" id="edit-p-risiko" name="risiko" required></textarea></div>
+                    
+                    <div><label>Penyebab</label><textarea class="form-control" id="edit-p-penyebab" name="penyebab" required></textarea></div>
+                    <div><label>Dampak</label><textarea class="form-control" id="edit-p-dampak" name="dampak" required></textarea></div>
+                    <div>
+                        <label>Status</label>
+                        <select class="form-control" id="edit-p-status" name="status" required>
+                            <option value="Open">Open</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                    
+                    <div><label>Tahun</label><input type="number" class="form-control" id="edit-p-tahun" name="tahun" required></div>
+                    <div>
+                        <label>Kuartal</label>
+                        <select class="form-control" id="edit-p-kuartal" name="kuartal" required>
+                            <option value="Q1">Q1</option>
+                            <option value="Q2">Q2</option>
+                            <option value="Q3">Q3</option>
+                            <option value="Q4">Q4</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <div style="flex:1"><label>Peluang Score (1-5)</label><input type="number" min="1" max="5" class="form-control" id="edit-p-peluang" name="peluangScore" required></div>
+                        <div style="flex:1"><label>Dampak Score (1-5)</label><input type="number" min="1" max="5" class="form-control" id="edit-p-dampakscore" name="dampakScore" required></div>
+                    </div>
+                </div>
+                <button type="submit" class="btn-save" style="background-color: #ffc107; color:#333; width:100%; margin-top:20px;">UPDATE PROJECT</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(btn) {
+            document.getElementById('edit-id').value = btn.getAttribute('data-id');
+            document.getElementById('edit-username').value = btn.getAttribute('data-username');
+            document.getElementById('edit-email').value = btn.getAttribute('data-email');
+            document.getElementById('edit-badgeId').value = btn.getAttribute('data-badgeid');
+            document.getElementById('edit-nama').value = btn.getAttribute('data-nama');
+            document.getElementById('edit-role').value = btn.getAttribute('data-role');
+            document.getElementById('edit-departemen').value = btn.getAttribute('data-departemen');
+            document.getElementById('editModal').style.display = 'block';
+        }
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+        
+        function openEditProjectModal(btn) {
+            document.getElementById('edit-p-id').value = btn.getAttribute('data-id');
+            document.getElementById('edit-p-namaProject').value = btn.getAttribute('data-namaproject');
+            document.getElementById('edit-p-idRisiko').value = btn.getAttribute('data-idrisiko');
+            document.getElementById('edit-p-dibuatOleh').value = btn.getAttribute('data-dibuatoleh');
+            document.getElementById('edit-p-unitKerja').value = btn.getAttribute('data-unitkerja');
+            document.getElementById('edit-p-sasaran').value = btn.getAttribute('data-sasaran');
+            document.getElementById('edit-p-bidang').value = btn.getAttribute('data-bidang');
+            document.getElementById('edit-p-eksternal').value = btn.getAttribute('data-eksternal');
+            document.getElementById('edit-p-internal').value = btn.getAttribute('data-internal');
+            document.getElementById('edit-p-risiko').value = btn.getAttribute('data-risiko');
+            document.getElementById('edit-p-penyebab').value = btn.getAttribute('data-penyebab');
+            document.getElementById('edit-p-dampak').value = btn.getAttribute('data-dampak');
+            document.getElementById('edit-p-tahun').value = btn.getAttribute('data-tahun');
+            document.getElementById('edit-p-kuartal').value = btn.getAttribute('data-kuartal');
+            document.getElementById('edit-p-status').value = btn.getAttribute('data-status');
+            document.getElementById('edit-p-peluang').value = btn.getAttribute('data-peluang');
+            document.getElementById('edit-p-dampakscore').value = btn.getAttribute('data-dampakscore');
+            
+            document.getElementById('editProjectModal').style.display = 'block';
+        }
+        function closeEditProjectModal() {
+            document.getElementById('editProjectModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('editModal')) {
+                closeEditModal();
+            }
+            if (event.target == document.getElementById('editProjectModal')) {
+                closeEditProjectModal();
+            }
+        }
+    </script>
+</body>
+</html>

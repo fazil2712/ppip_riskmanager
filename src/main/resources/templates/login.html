@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>PORTAL RISIKO - Login</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <style>
+        body {
+            /* Simulating the building background */
+            background: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 76, 151, 0.4);
+            z-index: 1;
+        }
+
+        .login-container {
+            z-index: 2;
+            width: 400px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .login-header {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 15px;
+            border-radius: 12px 12px 0 0;
+            margin: -40px -40px 30px -40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: var(--font-family);
+        }
+
+        .btn-block {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    
+    <div style="position: absolute; top: 20px; left: 20px; z-index: 2; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.9); padding: 10px 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <img th:src="@{/img/logo.webp}" alt="Logo" style="width: 40px; height: auto;">
+        <div style="font-weight: 700; color: var(--primary-blue); font-size: 14px; line-height: 1.2;">
+            PUPUK SRIWIDJAJA<br>PALEMBANG
+        </div>
+    </div>
+
+    <div class="glass-panel login-container">
+        <div class="login-header">
+            <h3 style="margin:0;">PUPUK SRIWIDJAJA PALEMBANG</h3>
+        </div>
+        <h2 style="margin-bottom: 30px;">Login</h2>
+        <div th:if="${error}" style="color: white; background: #dc3545; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 14px;" th:text="${error}"></div>
+        <form th:action="@{/login}" method="post">
+
+            <div class="form-group">
+                <input type="text" class="form-control" name="username" placeholder="Badge Number / Username" required>
+            </div>
+            <div class="form-group">
+                <input type="password" class="form-control" name="password" placeholder="••••••••" required>
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap: 8px;">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Remember Me</label>
+            </div>
+            <button type="submit" class="btn-primary btn-block">Login</button>
+        </form>
+    </div>
+</body>
+</html>
