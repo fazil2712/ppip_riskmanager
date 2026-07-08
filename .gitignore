@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Application Runtime Data ###
+uploads/
+*.log
+logs/
+
+### Graphify / Agents Output ###
+graphify-out/
