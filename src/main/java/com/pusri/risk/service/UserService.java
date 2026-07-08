@@ -17,8 +17,11 @@ public class UserService {
         return userRepository.findAll();
     }
     
-    public User authenticate(String username, String password) {
-        User user = userRepository.findByUsername(username);
+    public User authenticate(String loginId, String password) {
+        User user = userRepository.findByBadgeId(loginId);
+        if (user == null) {
+            user = userRepository.findFirstByNama(loginId);
+        }
         if (user != null && user.getPassword().equals(password)) {
             return user;
         }

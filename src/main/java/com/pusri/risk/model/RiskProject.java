@@ -19,12 +19,20 @@ public class RiskProject {
     private String unitKerja;
     @Column(columnDefinition = "TEXT")
     private String sasaranUnitKerja;
+    private String sasaranUnitKerjaFile;
+    
     @Column(columnDefinition = "TEXT")
     private String konteksEksternal;
+    private String konteksEksternalFile;
+    
     @Column(columnDefinition = "TEXT")
     private String konteksInternal;
+    private String konteksInternalFile;
+    
     @Column(columnDefinition = "TEXT")
     private String risiko;
+    private String risikoFile;
+    
     private String bidang;
     @Column(columnDefinition = "TEXT")
     private String penyebab;
@@ -49,14 +57,30 @@ public class RiskProject {
     public RiskProject() {}
 
     public void calculateRiskMatrix() {
-        this.totalRiskScore = this.peluangScore * this.dampakScore;
-        if (this.totalRiskScore >= 15) {
-            this.riskLevel = "HIGH";
-        } else if (this.totalRiskScore >= 6) {
-            this.riskLevel = "MEDIUM";
-        } else {
-            this.riskLevel = "LOW";
+        if (this.peluangScore < 1 || this.peluangScore > 5 || this.dampakScore < 1 || this.dampakScore > 5) {
+            this.totalRiskScore = 0;
+            this.riskLevel = "UNKNOWN";
+            return;
         }
+
+        int[][] scoreMatrix = {
+            { 1,  5, 10, 15, 20}, // Peluang 1
+            { 2,  6, 11, 16, 21}, // Peluang 2
+            { 3,  8, 13, 18, 23}, // Peluang 3
+            { 4,  9, 14, 19, 24}, // Peluang 4
+            { 7, 12, 17, 22, 25}  // Peluang 5
+        };
+
+        String[][] levelMatrix = {
+            {"Low", "Low", "Low to Moderate", "Moderate", "High"}, // Peluang 1
+            {"Low", "Low to Moderate", "Low to Moderate", "Moderate to High", "High"}, // Peluang 2
+            {"Low", "Low to Moderate", "Moderate", "Moderate to High", "High"}, // Peluang 3
+            {"Low", "Low to Moderate", "Moderate", "Moderate to High", "High"}, // Peluang 4
+            {"Low to Moderate", "Moderate", "Moderate to High", "High", "High"} // Peluang 5
+        };
+
+        this.totalRiskScore = scoreMatrix[this.peluangScore - 1][this.dampakScore - 1];
+        this.riskLevel = levelMatrix[this.peluangScore - 1][this.dampakScore - 1];
     }
 
     public String generateReport() {
@@ -113,12 +137,28 @@ public class RiskProject {
         this.sasaranUnitKerja = sasaranUnitKerja;
     }
 
+    public String getSasaranUnitKerjaFile() {
+        return sasaranUnitKerjaFile;
+    }
+
+    public void setSasaranUnitKerjaFile(String sasaranUnitKerjaFile) {
+        this.sasaranUnitKerjaFile = sasaranUnitKerjaFile;
+    }
+
     public String getKonteksEksternal() {
         return konteksEksternal;
     }
 
     public void setKonteksEksternal(String konteksEksternal) {
         this.konteksEksternal = konteksEksternal;
+    }
+
+    public String getKonteksEksternalFile() {
+        return konteksEksternalFile;
+    }
+
+    public void setKonteksEksternalFile(String konteksEksternalFile) {
+        this.konteksEksternalFile = konteksEksternalFile;
     }
 
     public String getKonteksInternal() {
@@ -129,12 +169,28 @@ public class RiskProject {
         this.konteksInternal = konteksInternal;
     }
 
+    public String getKonteksInternalFile() {
+        return konteksInternalFile;
+    }
+
+    public void setKonteksInternalFile(String konteksInternalFile) {
+        this.konteksInternalFile = konteksInternalFile;
+    }
+
     public String getRisiko() {
         return risiko;
     }
 
     public void setRisiko(String risiko) {
         this.risiko = risiko;
+    }
+
+    public String getRisikoFile() {
+        return risikoFile;
+    }
+
+    public void setRisikoFile(String risikoFile) {
+        this.risikoFile = risikoFile;
     }
 
     public String getBidang() {

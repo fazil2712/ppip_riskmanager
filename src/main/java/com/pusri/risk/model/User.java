@@ -13,9 +13,6 @@ public class User {
     private String nama;
     
     @Column(unique = true)
-    private String username;
-    
-    @Column(unique = true)
     private String email;
     
     @Column(unique = true)
@@ -45,14 +42,6 @@ public class User {
 
     public void setNama(String nama) {
         this.nama = nama;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getEmail() {

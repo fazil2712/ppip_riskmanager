@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>PORTAL RISIKO - Identifikasi Risiko</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <style>
+        .layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 250px; background: white; box-shadow: 2px 0 5px rgba(0,0,0,0.05); padding: 20px 0;
+            display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+        }
+        .menu-item { padding: 12px 20px; color: var(--text-muted); text-decoration: none; display: block; font-weight: 500; }
+        .menu-item:hover, .menu-item.active { background: #f8f9fa; color: var(--primary-blue); border-left: 4px solid var(--primary-yellow); }
+        .main-content { flex: 1; padding: 20px 40px; }
+        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--text-main); }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+        .btn-primary { background: var(--primary-blue); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-primary:hover { background: #003870; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: top; }
+        th { background: #b4c6e7; font-weight: bold; }
+        .file-link { display: inline-block; margin-top: 5px; color: var(--primary-blue); text-decoration: none; font-size: 12px; font-weight: 600; }
+        .file-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div style="padding: 0 20px 20px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; margin-bottom: 20px;">
+                <img th:src="@{/img/logo.webp}" alt="Logo" style="width: 40px; height: auto;">
+                <div style="font-weight: 700; color: var(--primary-blue); font-size: 14px; line-height: 1.2;">
+                    PUPUK SRIWIDJAJA<br>PALEMBANG
+                </div>
+            </div>
+            
+            <div class="profile-section" style="padding: 0 20px 20px 20px; border-bottom: 1px solid #eee; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+                <div class="profile-pic" style="width: 50px; height: 50px; border-radius: 50%; background: #ddd; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+                    <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/' + ${session.loggedInUser.fotoProfil}}" style="width:100%; height:100%; object-fit:cover;">
+                    <span th:unless="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" style="color:#888; font-size:24px;">👤</span>
+                </div>
+                <div>
+                    <div style="font-size:12px; color:var(--text-muted);">Selamat datang</div>
+                    <div style="font-weight:600; font-size:14px; margin-top:2px; color:var(--primary-blue);" th:text="${session.loggedInUser != null ? session.loggedInUser.nama : 'Unknown User'}">User</div>
+                    <div style="font-weight:600; font-size:13px; color:var(--text-muted);" th:text="${session.loggedInUser != null ? '(' + session.loggedInUser.badgeId + ')' : '(Guest)'}">(0000)</div>
+                </div>
+            </div>
+            <div style="padding: 0 20px 20px 20px; border-bottom: 1px solid #eee;">
+                <small style="color:var(--text-muted)" th:text="${session.loggedInUser != null ? session.loggedInUser.departemen : 'Unknown Dept'}">DEPT</small><br>
+                <small style="color:var(--primary-yellow); font-weight:bold;">Role: <span th:text="${session.loggedInUser != null ? session.loggedInUser.role : 'None'}">Role</span></small>
+            </div>
+            
+            <a th:href="@{/dashboard}" class="menu-item">Dashboard</a>
+            <div style="padding: 12px 20px; font-weight:600; color:#333;">RISIKO</div>
+            <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin}" class="menu-item" style="padding-left: 40px; color: #dc3545;">
+                ⚙️ Admin Panel
+            </a>
+            <a th:href="@{/identifikasi}" class="menu-item active" style="padding-left: 40px;">Identifikasi Risiko</a>
+            <a th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
+            <a href="#" class="menu-item" style="padding-left: 40px;">Report</a>
+            
+            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;">Log Out</a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <h2 style="margin-top:0; color:var(--primary-blue);">Identifikasi Risiko</h2>
+            
+            <div th:if="${successMessage}" style="color: white; background: #28a745; padding: 10px; border-radius: 6px; margin-bottom: 20px;" th:text="${successMessage}"></div>
+
+            <!-- Form Card -->
+            <div class="card">
+                <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Input Data Awal Proyek</h3>
+                <form th:action="@{/identifikasi/add}" method="post" enctype="multipart/form-data">
+                    <div class="form-group" style="max-width: 300px;">
+                        <label>ID Risiko</label>
+                        <input type="text" class="form-control" name="idRisiko" required placeholder="Contoh: RSK-015">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <div class="form-group">
+                            <label>Sasaran Unit Kerja</label>
+                            <textarea class="form-control" name="sasaranUnitKerja" rows="3" required></textarea>
+                            <input type="file" name="sasaranFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+                        </div>
+                        <div class="form-group">
+                            <label>Konteks Eksternal</label>
+                            <textarea class="form-control" name="konteksEksternal" rows="3" required></textarea>
+                            <input type="file" name="eksternalFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+                        </div>
+                        <div class="form-group">
+                            <label>Konteks Internal</label>
+                            <textarea class="form-control" name="konteksInternal" rows="3" required></textarea>
+                            <input type="file" name="internalFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+                        </div>
+                        <div class="form-group">
+                            <label>Risiko</label>
+                            <textarea class="form-control" name="risiko" rows="3" required></textarea>
+                            <input type="file" name="risikoFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary" style="margin-top: 15px;">Simpan Data</button>
+                </form>
+            </div>
+
+            <!-- Data Table Card -->
+            <div class="card">
+                <h3 style="margin-top:0;">Daftar Identifikasi Risiko</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">No</th>
+                            <th>ID Risiko</th>
+                            <th>Dibuat Oleh</th>
+                            <th>Unit Kerja</th>
+                            <th>Sasaran Unit Kerja</th>
+                            <th>Konteks Eksternal</th>
+                            <th>Konteks Internal</th>
+                            <th>Risiko</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="p, iterStat : ${projects}">
+                            <td th:text="${iterStat.count}">1</td>
+                            <td th:text="${p.idRisiko}">RSK-001</td>
+                            <td th:text="${p.dibuatOleh}">Amrina Rosyada</td>
+                            <td th:text="${p.unitKerja}">SPI, Manrisk & Kepatuhan</td>
+                            
+                            <td>
+                                <span th:text="${p.sasaranUnitKerja}"></span><br>
+                                <a th:if="${p.sasaranUnitKerjaFile != null}" th:href="@{'/' + ${p.sasaranUnitKerjaFile}}" target="_blank" class="file-link">📎 Download File</a>
+                            </td>
+                            <td>
+                                <span th:text="${p.konteksEksternal}"></span><br>
+                                <a th:if="${p.konteksEksternalFile != null}" th:href="@{'/' + ${p.konteksEksternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                            </td>
+                            <td>
+                                <span th:text="${p.konteksInternal}"></span><br>
+                                <a th:if="${p.konteksInternalFile != null}" th:href="@{'/' + ${p.konteksInternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                            </td>
+                            <td>
+                                <span th:text="${p.risiko}"></span><br>
+                                <a th:if="${p.risikoFile != null}" th:href="@{'/' + ${p.risikoFile}}" target="_blank" class="file-link">📎 Download File</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(projects)}">
+                            <td colspan="8" style="text-align: center; color: var(--text-muted);">Belum ada data identifikasi risiko.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>

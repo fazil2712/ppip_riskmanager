@@ -14,17 +14,16 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (userRepository.findByUsername("ppip") == null) {
+        if (userRepository.findByBadgeId("000000") == null) {
             User admin = new User();
-            admin.setUsername("ppip");
-            admin.setPassword("ppip");
-            admin.setEmail("ppip@pusri.co.id");
             admin.setBadgeId("000000");
+            admin.setPassword("ppip");
             admin.setNama("Super Admin");
+            admin.setEmail("ppip@pusri.co.id");
             admin.setRole("Admin");
             admin.setDepartemen("IT / PPIP");
             userRepository.save(admin);
-            System.out.println("Default admin user 'ppip' created.");
+            System.out.println("Default admin user 'ppip' created with Badge ID 000000.");
         }
     }
 }

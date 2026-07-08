@@ -134,7 +134,7 @@
                 ⚙️ Admin Panel
             </a>
 
-            <a href="#" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
+            <a th:href="@{/identifikasi}" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
             <a th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
             <a href="#" class="menu-item" style="padding-left: 40px;">Report</a>
             
@@ -151,10 +151,6 @@
                 <h3 style="margin-top:0;">Register New Account</h3>
                 <form th:action="@{/admin/register}" method="post" enctype="multipart/form-data">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div>
-                            <label>Username</label>
-                            <input type="text" class="form-control" name="username" required>
-                        </div>
                         <div>
                             <label>Badge ID</label>
                             <input type="text" class="form-control" name="badgeId" required>
@@ -199,7 +195,6 @@
                         <tr>
                             <th style="width: 50px;">Pic</th>
                             <th>Badge ID</th>
-                            <th>Username</th>
                             <th>Email</th>
                             <th>Nama</th>
                             <th>Role</th>
@@ -214,7 +209,6 @@
                                 <div th:unless="${u.fotoProfil != null}" style="width:40px; height:40px; border-radius:50%; background:#ddd;"></div>
                             </td>
                             <td th:text="${u.badgeId}">000000</td>
-                            <td th:text="${u.username}">admin</td>
                             <td th:text="${u.email}">admin@example.com</td>
                             <td th:text="${u.nama}">Admin User</td>
                             <td>
@@ -225,7 +219,6 @@
                             <td>
                                 <button type="button" class="btn-edit" 
                                         th:data-id="${u.id}" 
-                                        th:data-username="${u.username}" 
                                         th:data-email="${u.email}"
                                         th:data-badgeid="${u.badgeId}"
                                         th:data-nama="${u.nama}"
@@ -303,10 +296,6 @@
             <form th:action="@{/admin/edit}" method="post" enctype="multipart/form-data">
                 <input type="hidden" id="edit-id" name="id">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div>
-                        <label>Username</label>
-                        <input type="text" class="form-control" id="edit-username" name="username" required>
-                    </div>
                     <div>
                         <label>Badge ID</label>
                         <input type="text" class="form-control" id="edit-badgeId" name="badgeId" required>
@@ -395,7 +384,6 @@
     <script>
         function openEditModal(btn) {
             document.getElementById('edit-id').value = btn.getAttribute('data-id');
-            document.getElementById('edit-username').value = btn.getAttribute('data-username');
             document.getElementById('edit-email').value = btn.getAttribute('data-email');
             document.getElementById('edit-badgeId').value = btn.getAttribute('data-badgeid');
             document.getElementById('edit-nama').value = btn.getAttribute('data-nama');

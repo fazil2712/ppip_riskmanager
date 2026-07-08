@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
+import java.time.LocalDate;
 
 @Controller
 public class WebController {
@@ -52,13 +53,13 @@ public class WebController {
     }
 
     @PostMapping("/login")
-    public String loginSubmit(@RequestParam String username, @RequestParam String password, HttpSession session, RedirectAttributes redirectAttributes) {
-        User user = userService.authenticate(username, password);
+    public String loginSubmit(@RequestParam String loginId, @RequestParam String password, HttpSession session, RedirectAttributes redirectAttributes) {
+        User user = userService.authenticate(loginId, password);
         if (user != null) {
             session.setAttribute("loggedInUser", user);
             return "redirect:/dashboard";
         }
-        redirectAttributes.addFlashAttribute("error", "Invalid username or password");
+        redirectAttributes.addFlashAttribute("error", "Invalid ID/Nama or password");
         return "redirect:/login";
     }
     
@@ -83,7 +84,7 @@ public class WebController {
             allProjects = riskProjectRepository.findByUnitKerja(user.getDepartemen());
         } else {
             // RiskOfficer or others
-            allProjects = riskProjectRepository.findByDibuatOleh(user.getUsername());
+            allProjects = riskProjectRepository.findByDibuatOleh(user.getNama());
         }
         
         // Filter in memory for year and quarter
@@ -118,6 +119,95 @@ public class WebController {
     public String pengendalianPage(HttpSession session) {
         if (session.getAttribute("loggedInUser") == null) return "redirect:/login";
         return "pengendalian";
+    }
+    
+    @GetMapping("/identifikasi")
+    public String identifikasiPage(HttpSession session, Model model) {
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        if (!"Admin".equals(user.getRole()) && !"CORPORATE RISK OFFICER".equals(user.getRole()) && !"RiskOfficer".equals(user.getRole())) {
+            return "redirect:/dashboard";
+        }
+        
+        List<RiskProject> projects;
+        if ("Admin".equals(user.getRole())) {
+            projects = riskProjectRepository.findAll();
+        } else {
+            projects = riskProjectRepository.findByDibuatOleh(user.getNama());
+        }
+        model.addAttribute("projects", projects);
+        return "identifikasi";
+    }
+    
+    @PostMapping("/identifikasi/add")
+    public String addIdentifikasi(HttpSession session,
+                                  @RequestParam("idRisiko") String idRisiko,
+                                  @RequestParam("sasaranUnitKerja") String sasaranUnitKerja,
+                                  @RequestParam("konteksEksternal") String konteksEksternal,
+                                  @RequestParam("konteksInternal") String konteksInternal,
+                                  @RequestParam("risiko") String risiko,
+                                  @RequestParam(value = "sasaranFile", required = false) MultipartFile sasaranFile,
+                                  @RequestParam(value = "eksternalFile", required = false) MultipartFile eksternalFile,
+                                  @RequestParam(value = "internalFile", required = false) MultipartFile internalFile,
+                                  @RequestParam(value = "risikoFile", required = false) MultipartFile risikoFile,
+                                  RedirectAttributes redirectAttributes) {
+        
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user == null || (!"Admin".equals(user.getRole()) && !"CORPORATE RISK OFFICER".equals(user.getRole()) && !"RiskOfficer".equals(user.getRole()))) {
+            return "redirect:/dashboard";
+        }
+
+        RiskProject project = new RiskProject();
+        project.setIdRisiko(idRisiko);
+        project.setNamaProject(idRisiko); // Default to ID Risiko
+        project.setDibuatOleh(user.getNama());
+        project.setUnitKerja(user.getDepartemen());
+        project.setSasaranUnitKerja(sasaranUnitKerja);
+        project.setKonteksEksternal(konteksEksternal);
+        project.setKonteksInternal(konteksInternal);
+        project.setRisiko(risiko);
+        project.setStatus("Open");
+        
+        // Auto-assign Year and Quarter
+        LocalDate date = LocalDate.now();
+        project.setTahun(date.getYear());
+        int month = date.getMonthValue();
+        if (month <= 3) project.setKuartal("Q1");
+        else if (month <= 6) project.setKuartal("Q2");
+        else if (month <= 9) project.setKuartal("Q3");
+        else project.setKuartal("Q4");
+
+        // Save files
+        project.setSasaranUnitKerjaFile(saveProjectFile(sasaranFile, "sasaran"));
+        project.setKonteksEksternalFile(saveProjectFile(eksternalFile, "konteks_eksternal"));
+        project.setKonteksInternalFile(saveProjectFile(internalFile, "konteks_internal"));
+        project.setRisikoFile(saveProjectFile(risikoFile, "risiko"));
+
+        riskProjectRepository.save(project);
+        redirectAttributes.addFlashAttribute("successMessage", "Data Identifikasi Risiko berhasil ditambahkan!");
+        
+        return "redirect:/identifikasi";
+    }
+
+    private String saveProjectFile(MultipartFile file, String folder) {
+        if (file != null && !file.isEmpty()) {
+            try {
+                String uploadDir = "uploads/" + folder + "/";
+                Path uploadPath = Paths.get(uploadDir);
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
+                String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+                Path filePath = uploadPath.resolve(filename);
+                Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+                return uploadDir + filename;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
     
     @GetMapping("/admin")
@@ -224,7 +314,7 @@ public class WebController {
             userService.registerAccount(newUser);
             redirectAttributes.addFlashAttribute("successMessage", "Account created successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error creating account. Ensure username, email and badge ID are unique.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Error creating account. Ensure email and badge ID are unique.");
         }
         
         return "redirect:/admin";
@@ -232,7 +322,6 @@ public class WebController {
     
     @PostMapping("/admin/edit")
     public String editUser(@RequestParam("id") Long id, 
-                           @RequestParam("username") String username, 
                            @RequestParam("email") String email,
                            @RequestParam("nama") String nama,
                            @RequestParam("badgeId") String badgeId,
@@ -248,7 +337,6 @@ public class WebController {
         try {
             User existingUser = userService.findById(id);
             if(existingUser != null) {
-                existingUser.setUsername(username);
                 existingUser.setEmail(email);
                 existingUser.setNama(nama);
                 existingUser.setBadgeId(badgeId);
