@@ -270,7 +270,7 @@
                                         th:data-eksternal="${p.konteksEksternal}"
                                         th:data-internal="${p.konteksInternal}"
                                         th:data-risiko="${p.risiko}"
-                                        th:data-bidang="${p.bidang}"
+                                        th:data-kategoriRisiko="${p.kategoriRisiko}"
                                         th:data-penyebab="${p.penyebab}"
                                         th:data-dampak="${p.dampak}"
                                         th:data-tahun="${p.tahun}"
@@ -344,7 +344,19 @@
                     
                     <div><label>Unit Kerja</label><input type="text" class="form-control" id="edit-p-unitKerja" name="unitKerja" required></div>
                     <div><label>Sasaran Unit Kerja</label><input type="text" class="form-control" id="edit-p-sasaran" name="sasaranUnitKerja" required></div>
-                    <div><label>Bidang Risiko</label><input type="text" class="form-control" id="edit-p-bidang" name="bidang" required></div>
+                    <div><label>Kategori Risiko</label>
+                        <select class="form-control" id="edit-p-kategoririsiko" name="kategoriRisiko" required>
+                            <option value="">-- Pilih Kategori Risiko --</option>
+                            <option value="Strategis">Strategis</option>
+                            <option value="Operasional">Operasional</option>
+                            <option value="Kredit">Kredit</option>
+                            <option value="Pasar">Pasar</option>
+                            <option value="Likuiditas">Likuiditas</option>
+                            <option value="Hukum">Hukum</option>
+                            <option value="Kepatuhan">Kepatuhan</option>
+                            <option value="Reputasi">Reputasi</option>
+                        </select>
+                    </div>
                     
                     <div><label>Konteks Eksternal</label><textarea class="form-control" id="edit-p-eksternal" name="konteksEksternal" required></textarea></div>
                     <div><label>Konteks Internal</label><textarea class="form-control" id="edit-p-internal" name="konteksInternal" required></textarea></div>
@@ -402,7 +414,7 @@
             document.getElementById('edit-p-dibuatOleh').value = btn.getAttribute('data-dibuatoleh');
             document.getElementById('edit-p-unitKerja').value = btn.getAttribute('data-unitkerja');
             document.getElementById('edit-p-sasaran').value = btn.getAttribute('data-sasaran');
-            document.getElementById('edit-p-bidang').value = btn.getAttribute('data-bidang');
+            document.getElementById('edit-p-kategoririsiko').value = btn.getAttribute('data-kategoriRisiko');
             document.getElementById('edit-p-eksternal').value = btn.getAttribute('data-eksternal');
             document.getElementById('edit-p-internal').value = btn.getAttribute('data-internal');
             document.getElementById('edit-p-risiko').value = btn.getAttribute('data-risiko');

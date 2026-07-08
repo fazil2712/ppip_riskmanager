@@ -24,6 +24,15 @@
         th { background: #b4c6e7; font-weight: bold; }
         .file-link { display: inline-block; margin-top: 5px; color: var(--primary-blue); text-decoration: none; font-size: 12px; font-weight: 600; }
         .file-link:hover { text-decoration: underline; }
+        
+        /* Accordion Styles */
+        .accordion-item { border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; background: #fafafa; }
+        .accordion-header { background: white; padding: 15px 20px; cursor: pointer; font-weight: 600; color: var(--primary-blue); display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+        .accordion-header:hover { background: #f4f6f8; }
+        .accordion-content { padding: 20px; display: none; border-top: 1px solid #e0e0e0; background: white; }
+        .accordion-icon { transition: transform 0.3s ease; color: #888; font-size: 12px; }
+        .accordion-item.active .accordion-icon { transform: rotate(180deg); }
+        .accordion-item.active .accordion-content { display: block; }
     </style>
 </head>
 <body>
@@ -74,7 +83,7 @@
             <!-- Form Card -->
             <div class="card">
                 <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Input Data Awal Proyek</h3>
-                <form th:action="@{/identifikasi/add}" method="post" enctype="multipart/form-data">
+                <form th:action="@{/identifikasi/add}" method="post" enctype="multipart/form-data" onsubmit="return validateKonteks(this)">
                     <div class="form-group" style="max-width: 400px;">
                         <label>ID Risiko</label>
                         <div style="margin-bottom: 8px; font-size: 13px;">
@@ -93,33 +102,109 @@
                         </div>
                         
                         <input type="text" class="form-control" name="idRisiko" id="finalIdRisiko" required placeholder="Contoh: RSK-015">
-                        <small style="color:var(--text-muted); display:block; margin-top:5px;">Gunakan ID baru jika proyek ini belum memiliki awalan. Pilih lanjut ID lama untuk membuat seri proyek otomatis berdasarkan prefix yang ada (misal: RTM-01 -> RTM-02).</small>
+                        <small style="color:var(--text-muted); display:block; margin-top:5px;">Gunakan ID baru jika proyek ini belum memiliki awalan. Pilih lanjut ID lama untuk membuat seri otomatis (misal: RTM-01 -> RTM-02).</small>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                        <div class="form-group">
-                            <label>Sasaran Unit Kerja</label>
-                            <textarea class="form-control" name="sasaranUnitKerja" rows="3" required></textarea>
-                            <input type="file" name="sasaranFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+                    <div style="display: flex; flex-direction: column;">
+                        <div class="accordion-item active">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                Sasaran Unit Kerja <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <textarea class="form-control" name="sasaranUnitKerja" rows="4" required oninvalid="openAccordion(this)" placeholder="Tuliskan sasaran unit kerja..."></textarea>
+                                <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                    <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Upload Dokumen Pendukung (Opsional):</label>
+                                    <input type="file" name="sasaranFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Konteks Eksternal</label>
-                            <textarea class="form-control" name="konteksEksternal" rows="3" required></textarea>
-                            <input type="file" name="eksternalFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                Konteks Eksternal <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <textarea class="form-control" name="konteksEksternal" rows="4" placeholder="Tuliskan konteks eksternal..."></textarea>
+                                <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                    <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Upload Dokumen Pendukung (Opsional):</label>
+                                    <input type="file" name="eksternalFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Konteks Internal</label>
-                            <textarea class="form-control" name="konteksInternal" rows="3" required></textarea>
-                            <input type="file" name="internalFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                Konteks Internal <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <textarea class="form-control" name="konteksInternal" rows="4" placeholder="Tuliskan konteks internal..."></textarea>
+                                <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                    <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Upload Dokumen Pendukung (Opsional):</label>
+                                    <input type="file" name="internalFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Risiko</label>
-                            <textarea class="form-control" name="risiko" rows="3" required></textarea>
-                            <input type="file" name="risikoFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                Kategori Risiko <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <select class="form-control" name="kategoriRisiko" required>
+                                    <option value="">-- Pilih Kategori Risiko --</option>
+                                    <option value="Strategis">Strategis</option>
+                                    <option value="Operasional">Operasional</option>
+                                    <option value="Kredit">Kredit</option>
+                                    <option value="Pasar">Pasar</option>
+                                    <option value="Likuiditas">Likuiditas</option>
+                                    <option value="Hukum">Hukum</option>
+                                    <option value="Kepatuhan">Kepatuhan</option>
+                                    <option value="Reputasi">Reputasi</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                Penyebab <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <textarea class="form-control" name="penyebab" rows="4" required oninvalid="openAccordion(this)" placeholder="Tuliskan penyebab..."></textarea>
+                                <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                    <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Upload Dokumen Pendukung (Opsional):</label>
+                                    <input type="file" name="penyebabFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                Dampak <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <textarea class="form-control" name="dampak" rows="4" required oninvalid="openAccordion(this)" placeholder="Tuliskan dampak..."></textarea>
+                                <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                    <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Upload Dokumen Pendukung (Opsional):</label>
+                                    <input type="file" name="dampakFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                Risiko <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <textarea class="form-control" name="risiko" rows="4" required oninvalid="openAccordion(this)" placeholder="Tuliskan detail risiko..."></textarea>
+                                <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                    <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Upload Dokumen Pendukung (Opsional):</label>
+                                    <input type="file" name="risikoFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn-primary" style="margin-top: 15px;">Simpan Data</button>
+                    <button type="submit" class="btn-primary" style="margin-top: 15px; width:100%;">Simpan Data Proyek</button>
                 </form>
             </div>
 
@@ -134,10 +219,13 @@
                             <th>ID Risiko</th>
                             <th>Dibuat Oleh</th>
                             <th>Unit Kerja</th>
+                            <th>Kategori Risiko</th>
                             <th>Sasaran Unit Kerja</th>
                             <th>Konteks Eksternal</th>
                             <th>Konteks Internal</th>
                             <th>Risiko</th>
+                            <th>Penyebab</th>
+                            <th>Dampak</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -145,11 +233,12 @@
                             <td th:text="${iterStat.count}">1</td>
                             <td>
                                 <button type="button" class="btn-primary" style="padding: 5px 10px; font-size: 12px;" 
-                                    th:onclick="editProject([[${p.id}]], [[${p.idRisiko}]], [[${p.sasaranUnitKerja}]], [[${p.konteksEksternal}]], [[${p.konteksInternal}]], [[${p.risiko}]])">Edit</button>
+                                    th:onclick="editProject([[${p.id}]], [[${p.idRisiko}]], [[${p.sasaranUnitKerja}]], [[${p.konteksEksternal}]], [[${p.konteksInternal}]], [[${p.risiko}]], [[${p.kategoriRisiko}]], [[${p.penyebab}]], [[${p.dampak}]])">Edit</button>
                             </td>
                             <td th:text="${p.idRisiko}">RSK-001</td>
                             <td th:text="${p.dibuatOleh}">Amrina Rosyada</td>
                             <td th:text="${p.unitKerja}">SPI, Manrisk & Kepatuhan</td>
+                            <td th:text="${p.kategoriRisiko}">Operasional</td>
                             
                             <td>
                                 <span th:text="${p.sasaranUnitKerja}"></span><br>
@@ -167,9 +256,17 @@
                                 <span th:text="${p.risiko}"></span><br>
                                 <a th:if="${p.risikoFile != null}" th:href="@{'/' + ${p.risikoFile}}" target="_blank" class="file-link">📎 Download File</a>
                             </td>
+                            <td>
+                                <span th:text="${p.penyebab}"></span><br>
+                                <a th:if="${p.penyebabFile != null}" th:href="@{'/' + ${p.penyebabFile}}" target="_blank" class="file-link">📎 Download File</a>
+                            </td>
+                            <td>
+                                <span th:text="${p.dampak}"></span><br>
+                                <a th:if="${p.dampakFile != null}" th:href="@{'/' + ${p.dampakFile}}" target="_blank" class="file-link">📎 Download File</a>
+                            </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(projects)}">
-                            <td colspan="9" style="text-align: center; color: var(--text-muted);">Belum ada data identifikasi risiko.</td>
+                            <td colspan="12" style="text-align: center; color: var(--text-muted);">Belum ada data identifikasi risiko.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -182,37 +279,107 @@
     <div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
         <div style="background:white; padding:30px; border-radius:8px; width:90%; max-width:800px; max-height:90vh; overflow-y:auto; position:relative; margin: 5vh auto;">
             <h3 style="margin-top:0;">Edit Identifikasi Risiko</h3>
-            <form th:action="@{/identifikasi/edit}" method="post" enctype="multipart/form-data">
+            <form th:action="@{/identifikasi/edit}" method="post" enctype="multipart/form-data" onsubmit="return validateKonteks(this)">
                 <input type="hidden" name="id" id="editId">
                 <div class="form-group" style="max-width: 300px;">
                     <label>ID Risiko</label>
-                    <input type="text" class="form-control" name="idRisiko" id="editIdRisiko" required>
+                    <input type="text" class="form-control" name="idRisiko" id="editIdRisiko" required readonly style="background:#f4f4f4;">
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                    <div class="form-group">
-                        <label>Sasaran Unit Kerja</label>
-                        <textarea class="form-control" name="sasaranUnitKerja" id="editSasaran" rows="3" required></textarea>
-                        <input type="file" name="sasaranFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+                <div style="display: flex; flex-direction: column;">
+                    <div class="accordion-item active">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            Kategori Risiko <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <select class="form-control" name="kategoriRisiko" id="editKategoriRisiko" required>
+                                <option value="">-- Pilih Kategori Risiko --</option>
+                                <option value="Strategis">Strategis</option>
+                                <option value="Operasional">Operasional</option>
+                                <option value="Kredit">Kredit</option>
+                                <option value="Pasar">Pasar</option>
+                                <option value="Likuiditas">Likuiditas</option>
+                                <option value="Hukum">Hukum</option>
+                                <option value="Kepatuhan">Kepatuhan</option>
+                                <option value="Reputasi">Reputasi</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Konteks Eksternal</label>
-                        <textarea class="form-control" name="konteksEksternal" id="editEksternal" rows="3" required></textarea>
-                        <input type="file" name="eksternalFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+                    <div class="accordion-item active">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            Sasaran Unit Kerja <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <textarea class="form-control" name="sasaranUnitKerja" id="editSasaran" rows="4" required oninvalid="openAccordion(this)"></textarea>
+                            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Ganti Dokumen (Opsional):</label>
+                                <input type="file" name="sasaranFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Konteks Internal</label>
-                        <textarea class="form-control" name="konteksInternal" id="editInternal" rows="3" required></textarea>
-                        <input type="file" name="internalFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+                    <div class="accordion-item active">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            Konteks Eksternal <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <textarea class="form-control" name="konteksEksternal" id="editEksternal" rows="4"></textarea>
+                            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Ganti Dokumen (Opsional):</label>
+                                <input type="file" name="eksternalFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Risiko</label>
-                        <textarea class="form-control" name="risiko" id="editRisiko" rows="3" required></textarea>
-                        <input type="file" name="risikoFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+                    <div class="accordion-item active">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            Konteks Internal <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <textarea class="form-control" name="konteksInternal" id="editInternal" rows="4"></textarea>
+                            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Ganti Dokumen (Opsional):</label>
+                                <input type="file" name="internalFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item active">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            Risiko <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <textarea class="form-control" name="risiko" id="editRisiko" rows="4" required oninvalid="openAccordion(this)"></textarea>
+                            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Ganti Dokumen (Opsional):</label>
+                                <input type="file" name="risikoFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item active">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            Penyebab <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <textarea class="form-control" name="penyebab" id="editPenyebab" rows="4" required oninvalid="openAccordion(this)"></textarea>
+                            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Ganti Dokumen (Opsional):</label>
+                                <input type="file" name="penyebabFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item active">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            Dampak <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <textarea class="form-control" name="dampak" id="editDampak" rows="4" required oninvalid="openAccordion(this)"></textarea>
+                            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Ganti Dokumen (Opsional):</label>
+                                <input type="file" name="dampakFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div style="margin-top:20px; display:flex; gap:10px;">
-                    <button type="submit" class="btn-primary">Update Data</button>
+                <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
                     <button type="button" class="btn-primary" style="background:#dc3545;" onclick="closeEditModal()">Batal</button>
+                    <button type="submit" class="btn-primary">Update Data</button>
                 </div>
             </form>
         </div>
@@ -286,18 +453,51 @@
             }
         }
 
-        function editProject(id, idRisiko, sasaran, eksternal, internal, risiko) {
+        function editProject(id, idRisiko, sasaran, eksternal, internal, risiko, kategoriRisiko, penyebab, dampak) {
             document.getElementById("editId").value = id;
             document.getElementById("editIdRisiko").value = idRisiko;
             document.getElementById("editSasaran").value = sasaran;
             document.getElementById("editEksternal").value = eksternal;
             document.getElementById("editInternal").value = internal;
             document.getElementById("editRisiko").value = risiko;
+            document.getElementById("editKategoriRisiko").value = kategoriRisiko;
+            document.getElementById("editPenyebab").value = penyebab;
+            document.getElementById("editDampak").value = dampak;
             document.getElementById("editModal").style.display = "flex";
         }
 
         function closeEditModal() {
             document.getElementById("editModal").style.display = "none";
+        }
+
+        function toggleAccordion(header) {
+            const item = header.parentElement;
+            item.classList.toggle("active");
+        }
+
+        function openAccordion(element) {
+            const item = element.closest('.accordion-item');
+            if (item && !item.classList.contains('active')) {
+                item.classList.add('active');
+            }
+        }
+
+        function validateKonteks(form) {
+            const eksternal = form.querySelector('[name="konteksEksternal"]').value.trim();
+            const internal = form.querySelector('[name="konteksInternal"]').value.trim();
+            
+            if (eksternal === "" && internal === "") {
+                alert("Anda harus mengisi minimal salah satu antara Konteks Eksternal ATAU Konteks Internal!");
+                
+                const eksternalItem = form.querySelector('[name="konteksEksternal"]').closest('.accordion-item');
+                if (eksternalItem) eksternalItem.classList.add('active');
+                
+                const internalItem = form.querySelector('[name="konteksInternal"]').closest('.accordion-item');
+                if (internalItem) internalItem.classList.add('active');
+                
+                return false;
+            }
+            return true;
         }
     </script>
 </body>

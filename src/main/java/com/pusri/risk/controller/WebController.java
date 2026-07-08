@@ -148,10 +148,15 @@ public class WebController {
                                   @RequestParam("konteksEksternal") String konteksEksternal,
                                   @RequestParam("konteksInternal") String konteksInternal,
                                   @RequestParam("risiko") String risiko,
+                                  @RequestParam("kategoriRisiko") String kategoriRisiko,
+                                  @RequestParam("penyebab") String penyebab,
+                                  @RequestParam("dampak") String dampak,
                                   @RequestParam(value = "sasaranFile", required = false) MultipartFile sasaranFile,
                                   @RequestParam(value = "eksternalFile", required = false) MultipartFile eksternalFile,
                                   @RequestParam(value = "internalFile", required = false) MultipartFile internalFile,
                                   @RequestParam(value = "risikoFile", required = false) MultipartFile risikoFile,
+                                  @RequestParam(value = "penyebabFile", required = false) MultipartFile penyebabFile,
+                                  @RequestParam(value = "dampakFile", required = false) MultipartFile dampakFile,
                                   RedirectAttributes redirectAttributes) {
         
         User user = (User) session.getAttribute("loggedInUser");
@@ -168,6 +173,9 @@ public class WebController {
         project.setKonteksEksternal(konteksEksternal);
         project.setKonteksInternal(konteksInternal);
         project.setRisiko(risiko);
+        project.setKategoriRisiko(kategoriRisiko);
+        project.setPenyebab(penyebab);
+        project.setDampak(dampak);
         project.setStatus("Open");
         
         // Auto-assign Year and Quarter
@@ -184,6 +192,8 @@ public class WebController {
         project.setKonteksEksternalFile(saveProjectFile(eksternalFile, "konteks_eksternal"));
         project.setKonteksInternalFile(saveProjectFile(internalFile, "konteks_internal"));
         project.setRisikoFile(saveProjectFile(risikoFile, "risiko"));
+        project.setPenyebabFile(saveProjectFile(penyebabFile, "penyebab"));
+        project.setDampakFile(saveProjectFile(dampakFile, "dampak"));
 
         riskProjectRepository.save(project);
         redirectAttributes.addFlashAttribute("successMessage", "Data Identifikasi Risiko berhasil ditambahkan!");
@@ -199,10 +209,15 @@ public class WebController {
                                    @RequestParam("konteksEksternal") String konteksEksternal,
                                    @RequestParam("konteksInternal") String konteksInternal,
                                    @RequestParam("risiko") String risiko,
+                                   @RequestParam("kategoriRisiko") String kategoriRisiko,
+                                   @RequestParam("penyebab") String penyebab,
+                                   @RequestParam("dampak") String dampak,
                                    @RequestParam(value = "sasaranFile", required = false) MultipartFile sasaranFile,
                                    @RequestParam(value = "eksternalFile", required = false) MultipartFile eksternalFile,
                                    @RequestParam(value = "internalFile", required = false) MultipartFile internalFile,
                                    @RequestParam(value = "risikoFile", required = false) MultipartFile risikoFile,
+                                   @RequestParam(value = "penyebabFile", required = false) MultipartFile penyebabFile,
+                                   @RequestParam(value = "dampakFile", required = false) MultipartFile dampakFile,
                                    RedirectAttributes redirectAttributes) {
         
         User user = (User) session.getAttribute("loggedInUser");
@@ -224,12 +239,17 @@ public class WebController {
             project.setKonteksEksternal(konteksEksternal);
             project.setKonteksInternal(konteksInternal);
             project.setRisiko(risiko);
+            project.setKategoriRisiko(kategoriRisiko);
+            project.setPenyebab(penyebab);
+            project.setDampak(dampak);
 
             // Update files only if new ones are provided
             if (sasaranFile != null && !sasaranFile.isEmpty()) project.setSasaranUnitKerjaFile(saveProjectFile(sasaranFile, "sasaran"));
             if (eksternalFile != null && !eksternalFile.isEmpty()) project.setKonteksEksternalFile(saveProjectFile(eksternalFile, "konteks_eksternal"));
             if (internalFile != null && !internalFile.isEmpty()) project.setKonteksInternalFile(saveProjectFile(internalFile, "konteks_internal"));
             if (risikoFile != null && !risikoFile.isEmpty()) project.setRisikoFile(saveProjectFile(risikoFile, "risiko"));
+            if (penyebabFile != null && !penyebabFile.isEmpty()) project.setPenyebabFile(saveProjectFile(penyebabFile, "penyebab"));
+            if (dampakFile != null && !dampakFile.isEmpty()) project.setDampakFile(saveProjectFile(dampakFile, "dampak"));
 
             riskProjectRepository.save(project);
             redirectAttributes.addFlashAttribute("successMessage", "Data Identifikasi Risiko berhasil diubah!");
@@ -278,7 +298,7 @@ public class WebController {
                               @RequestParam("konteksEksternal") String konteksEksternal,
                               @RequestParam("konteksInternal") String konteksInternal,
                               @RequestParam("risiko") String risiko,
-                              @RequestParam("bidang") String bidang,
+                              @RequestParam("kategoriRisiko") String kategoriRisiko,
                               @RequestParam("penyebab") String penyebab,
                               @RequestParam("dampak") String dampak,
                               @RequestParam("tahun") Integer tahun,
@@ -303,7 +323,7 @@ public class WebController {
                 p.setKonteksEksternal(konteksEksternal);
                 p.setKonteksInternal(konteksInternal);
                 p.setRisiko(risiko);
-                p.setBidang(bidang);
+                p.setKategoriRisiko(kategoriRisiko);
                 p.setPenyebab(penyebab);
                 p.setDampak(dampak);
                 p.setTahun(tahun);

@@ -33,11 +33,13 @@ public class RiskProject {
     private String risiko;
     private String risikoFile;
     
-    private String bidang;
+    private String kategoriRisiko;
     @Column(columnDefinition = "TEXT")
     private String penyebab;
+    private String penyebabFile;
     @Column(columnDefinition = "TEXT")
     private String dampak;
+    private String dampakFile;
     
     // Year for filtering
     private Integer tahun;
@@ -193,12 +195,12 @@ public class RiskProject {
         this.risikoFile = risikoFile;
     }
 
-    public String getBidang() {
-        return bidang;
+    public String getKategoriRisiko() {
+        return kategoriRisiko;
     }
 
-    public void setBidang(String bidang) {
-        this.bidang = bidang;
+    public void setKategoriRisiko(String kategoriRisiko) {
+        this.kategoriRisiko = kategoriRisiko;
     }
 
     public String getPenyebab() {
@@ -209,12 +211,28 @@ public class RiskProject {
         this.penyebab = penyebab;
     }
 
+    public String getPenyebabFile() {
+        return penyebabFile;
+    }
+
+    public void setPenyebabFile(String penyebabFile) {
+        this.penyebabFile = penyebabFile;
+    }
+
     public String getDampak() {
         return dampak;
     }
 
     public void setDampak(String dampak) {
         this.dampak = dampak;
+    }
+
+    public String getDampakFile() {
+        return dampakFile;
+    }
+
+    public void setDampakFile(String dampakFile) {
+        this.dampakFile = dampakFile;
     }
 
     public Integer getTahun() {
