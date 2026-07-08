@@ -71,10 +71,16 @@
 
             <!-- Report Table -->
             <div class="card">
-                <h3 th:if="${session.loggedInUser.role == 'RiskOfficer'}" style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Status Proyek Saya</h3>
-                <h3 th:unless="${session.loggedInUser.role == 'RiskOfficer'}" style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Menunggu Persetujuan Anda</h3>
+                <h3 th:if="${session.loggedInUser.role == 'RiskOfficer'}" onclick="toggleTable('table1')" style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Status Proyek Saya</span>
+                    <span id="icon-table1">▼</span>
+                </h3>
+                <h3 th:unless="${session.loggedInUser.role == 'RiskOfficer'}" onclick="toggleTable('table1')" style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Menunggu Persetujuan Anda</span>
+                    <span id="icon-table1">▼</span>
+                </h3>
                 
-                <div style="overflow-x: auto;">
+                <div id="table1" style="overflow-x: auto;">
                     <table>
                         <thead>
                             <tr>
@@ -219,8 +225,130 @@
                 </div>
             </div>
 
+            <!-- Proyek Disetujui Table -->
+            <div class="card" style="margin-bottom: 20px;" th:unless="${session.loggedInUser.role == 'RiskOfficer'}">
+                <h3 onclick="toggleTable('table2')" style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Proyek Disetujui (List Registrasi Risiko)</span>
+                    <span id="icon-table2">▼</span>
+                </h3>
+                
+                <div id="table2" style="display: block; overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">No</th>
+                                <th>Action</th>
+                                <th>ID Risiko</th>
+                                <th>Dibuat Oleh</th>
+                                <th>Unit Kerja</th>
+                                <th>Risk Owner</th>
+                                <th>Kategori Risiko</th>
+                                <th>Peluang</th>
+                                <th>Dampak (Nilai)</th>
+                                <th>Skor</th>
+                                <th>Tingkat Risiko</th>
+                                <th>Detail</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p, iterStat : ${approvedProjects}">
+                                <td th:text="${iterStat.count}">1</td>
+                                <td>
+                                        <form th:action="@{/report/request-triwulan}" method="post" th:if="${p.approvalStatus == 'open' && !p.updateTriwulanRequested}">
+                                            <input type="hidden" name="id" th:value="${p.id}">
+                                            <button type="submit" class="btn-primary" style="padding: 5px; font-size: 11px; background-color: var(--primary-yellow); color: #333; width: 100%;">Minta Update Triwulan</button>
+                                        </form>
+                                        <span th:if="${p.updateTriwulanRequested}" style="font-size: 10px; color: var(--primary-yellow); font-weight: bold; text-align: center;">Update Diminta</span>
+                                </td>
+                                <td th:text="${p.idRisiko}">RSK-001</td>
+                                <td th:text="${p.dibuatOleh}"></td>
+                                <td th:text="${p.unitKerja}"></td>
+                                <td th:text="${p.riskOwner}"></td>
+                                <td th:text="${p.kategoriRisiko}"></td>
+                                <td th:text="${p.peluangScore}"></td>
+                                <td th:text="${p.dampakScore}"></td>
+                                <td th:text="${p.totalRiskScore}"></td>
+                                <td th:text="${p.riskLevel}"></td>
+                                <td>
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'detail-risiko-app-' + ${p.id} + '\', \'Detail Risiko\')'">Detail Risiko</button>
+                                        <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'detail-pengendalian-app-' + ${p.id} + '\', \'Detail Pengendalian\')'">Detail Pengendalian</button>
+                                        <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'detail-triwulan-app-' + ${p.id} + '\', \'Detail Update Triwulan\')'">Detail Triwulan</button>
+                                    </div>
+
+                                    <!-- Hidden Content for Modals -->
+                                    <div th:id="'detail-risiko-app-' + ${p.id}" style="display:none;">
+                                        <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Sasaran Unit Kerja</h4>
+                                        <p th:text="${p.sasaranUnitKerja}"></p>
+                                        <a th:if="${p.sasaranUnitKerjaFile != null}" th:href="@{'/' + ${p.sasaranUnitKerjaFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Eksternal</h4>
+                                        <p th:text="${p.konteksEksternal}"></p>
+                                        <a th:if="${p.konteksEksternalFile != null}" th:href="@{'/' + ${p.konteksEksternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Internal</h4>
+                                        <p th:text="${p.konteksInternal}"></p>
+                                        <a th:if="${p.konteksInternalFile != null}" th:href="@{'/' + ${p.konteksInternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Peristiwa Risiko</h4>
+                                        <p th:text="${p.risiko}"></p>
+                                        <a th:if="${p.risikoFile != null}" th:href="@{'/' + ${p.risikoFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Penyebab</h4>
+                                        <p th:text="${p.penyebab}"></p>
+                                        <a th:if="${p.penyebabFile != null}" th:href="@{'/' + ${p.penyebabFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Dampak</h4>
+                                        <p th:text="${p.dampak}"></p>
+                                        <a th:if="${p.dampakFile != null}" th:href="@{'/' + ${p.dampakFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    </div>
+                                    
+                                    <div th:id="'detail-pengendalian-app-' + ${p.id}" style="display:none;">
+                                        <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Existing Control</h4>
+                                        <p th:text="${p.existingControl}"></p>
+                                        <a th:if="${p.existingControlFile != null}" th:href="@{'/' + ${p.existingControlFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Rencana Pengendalian</h4>
+                                        <p th:text="${p.rencanaPengendalian}"></p>
+                                        <a th:if="${p.rencanaPengendalianFile != null}" th:href="@{'/' + ${p.rencanaPengendalianFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    </div>
+                                    
+                                    <div th:id="'detail-triwulan-app-' + ${p.id}" style="display:none;">
+                                        <div th:if="${#lists.isEmpty(p.pengendalianRisikoList)}">
+                                            <p style="color: var(--text-muted); font-style: italic;">Belum ada update triwulan.</p>
+                                        </div>
+                                        <div th:each="pr : ${p.pengendalianRisikoList}" style="margin-bottom: 15px; padding: 15px; border: 1px solid #eee; border-left: 4px solid var(--primary-blue); border-radius: 4px; background: #f8f9fa;">
+                                            <h4 style="margin-top:0; color:var(--primary-blue); font-size:14px; margin-bottom: 10px;">
+                                                Update Triwulan Ke-<span th:text="${pr.triwulanKe}"></span>
+                                                <span style="float:right; font-size:11px; color:#666; font-weight:normal;" th:text="${pr.approvalStatus == 'open' ? '✅ Disetujui' : (pr.approvalStatus == 'menunggu' ? '⏳ Menunggu' : '❌ Ditolak')}"></span>
+                                            </h4>
+                                            <div style="font-size:13px; line-height:1.5;">
+                                                <div><strong>Realisasi Pengendalian:</strong></div>
+                                                <div style="margin-bottom:10px; white-space:pre-wrap;" th:text="${pr.realisasiPengendalian}"></div>
+                                                <div style="display:flex; gap:20px; background:white; padding:10px; border:1px solid #e0e0e0; border-radius:4px;">
+                                                    <div><strong>Peluang:</strong> <span th:text="${pr.peluangScore}"></span></div>
+                                                    <div><strong>Dampak:</strong> <span th:text="${pr.dampakScore}"></span></div>
+                                                    <div><strong>Total Score:</strong> <span th:text="${pr.totalRiskScore}"></span></div>
+                                                    <div><strong>Level Risiko:</strong> <span th:text="${pr.riskLevel}" style="font-weight:bold;"></span></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(approvedProjects)}">
+                                <td colspan="12" style="text-align: center; color: #888;">Tidak ada proyek disetujui.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Triwulan Pending Table -->
-            <div class="card" style="margin-bottom: 20px;">
+            <div class="card" style="margin-bottom: 20px;" th:unless="${session.loggedInUser.role == 'RiskOfficer'}">
                 <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Menunggu Persetujuan Triwulan</h3>
                 <div style="overflow-x: auto;">
                     <table>
@@ -233,6 +361,7 @@
                                 <th>Score</th>
                                 <th>Tingkat Risiko</th>
                                 <th>Status Approval</th>
+                                <th>Detail</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -248,6 +377,75 @@
                                     <div style="font-size: 11px;">
                                         <div>RiskOwner: <span th:text="${pr.riskOwnerApproval}"></span></div>
                                         <div>Admin: <span th:text="${pr.adminApproval}"></span></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'detail-risiko-triwulan-' + ${pr.id} + '\', \'Detail Risiko\')'">Detail Risiko</button>
+                                        <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'detail-pengendalian-triwulan-' + ${pr.id} + '\', \'Detail Pengendalian\')'">Detail Pengendalian</button>
+                                        <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'detail-triwulan-triwulan-' + ${pr.id} + '\', \'Detail Update Triwulan\')'">Detail Triwulan</button>
+                                    </div>
+
+                                    <!-- Hidden Content for Modals -->
+                                    <div th:id="'detail-risiko-triwulan-' + ${pr.id}" style="display:none;">
+                                        <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Sasaran Unit Kerja</h4>
+                                        <p th:text="${pr.riskProject.sasaranUnitKerja}"></p>
+                                        <a th:if="${pr.riskProject.sasaranUnitKerjaFile != null}" th:href="@{'/' + ${pr.riskProject.sasaranUnitKerjaFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Eksternal</h4>
+                                        <p th:text="${pr.riskProject.konteksEksternal}"></p>
+                                        <a th:if="${pr.riskProject.konteksEksternalFile != null}" th:href="@{'/' + ${pr.riskProject.konteksEksternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Internal</h4>
+                                        <p th:text="${pr.riskProject.konteksInternal}"></p>
+                                        <a th:if="${pr.riskProject.konteksInternalFile != null}" th:href="@{'/' + ${pr.riskProject.konteksInternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Peristiwa Risiko</h4>
+                                        <p th:text="${pr.riskProject.risiko}"></p>
+                                        <a th:if="${pr.riskProject.risikoFile != null}" th:href="@{'/' + ${pr.riskProject.risikoFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Penyebab</h4>
+                                        <p th:text="${pr.riskProject.penyebab}"></p>
+                                        <a th:if="${pr.riskProject.penyebabFile != null}" th:href="@{'/' + ${pr.riskProject.penyebabFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Dampak</h4>
+                                        <p th:text="${pr.riskProject.dampak}"></p>
+                                        <a th:if="${pr.riskProject.dampakFile != null}" th:href="@{'/' + ${pr.riskProject.dampakFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    </div>
+                                    
+                                    <div th:id="'detail-pengendalian-triwulan-' + ${pr.id}" style="display:none;">
+                                        <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Existing Control</h4>
+                                        <p th:text="${pr.riskProject.existingControl}"></p>
+                                        <a th:if="${pr.riskProject.existingControlFile != null}" th:href="@{'/' + ${pr.riskProject.existingControlFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Rencana Pengendalian</h4>
+                                        <p th:text="${pr.riskProject.rencanaPengendalian}"></p>
+                                        <a th:if="${pr.riskProject.rencanaPengendalianFile != null}" th:href="@{'/' + ${pr.riskProject.rencanaPengendalianFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    </div>
+                                    
+                                    <div th:id="'detail-triwulan-triwulan-' + ${pr.id}" style="display:none;">
+                                        <div th:if="${#lists.isEmpty(pr.riskProject.pengendalianRisikoList)}">
+                                            <p style="color: var(--text-muted); font-style: italic;">Belum ada update triwulan.</p>
+                                        </div>
+                                        <div th:each="prItem : ${pr.riskProject.pengendalianRisikoList}" style="margin-bottom: 15px; padding: 15px; border: 1px solid #eee; border-left: 4px solid var(--primary-blue); border-radius: 4px; background: #f8f9fa;">
+                                            <h4 style="margin-top:0; color:var(--primary-blue); font-size:14px; margin-bottom: 10px;">
+                                                Update Triwulan Ke-<span th:text="${prItem.triwulanKe}"></span>
+                                                <span style="float:right; font-size:11px; color:#666; font-weight:normal;" th:text="${prItem.approvalStatus == 'open' ? '✅ Disetujui' : (prItem.approvalStatus == 'menunggu' ? '⏳ Menunggu' : '❌ Ditolak')}"></span>
+                                            </h4>
+                                            <div style="font-size:13px; line-height:1.5;">
+                                                <div><strong>Realisasi Pengendalian:</strong></div>
+                                                <div style="margin-bottom:10px; white-space:pre-wrap;" th:text="${prItem.realisasiPengendalian}"></div>
+                                                <div style="display:flex; gap:20px; background:white; padding:10px; border:1px solid #e0e0e0; border-radius:4px;">
+                                                    <div><strong>Peluang:</strong> <span th:text="${prItem.peluangScore}"></span></div>
+                                                    <div><strong>Dampak:</strong> <span th:text="${prItem.dampakScore}"></span></div>
+                                                    <div><strong>Total Score:</strong> <span th:text="${prItem.totalRiskScore}"></span></div>
+                                                    <div><strong>Level Risiko:</strong> <span th:text="${prItem.riskLevel}" style="font-weight:bold;"></span></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
@@ -276,7 +474,7 @@
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(pendingTriwulan)}">
-                                <td colspan="8" style="text-align: center; color: var(--text-muted);">Belum ada data untuk ditampilkan.</td>
+                                <td colspan="9" style="text-align: center; color: var(--text-muted);">Belum ada data untuk ditampilkan.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -285,14 +483,16 @@
 
             <!-- History Table -->
             <div class="card">
-                <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Riwayat Approval</h3>
-                <div style="overflow-x: auto;">
+                <h3 onclick="toggleTable('table3')" style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Riwayat Approval</span>
+                    <span id="icon-table3">▼</span>
+                </h3>
+                <div id="table3" style="display: block; overflow-x: auto;">
                     <table>
                         <thead>
                             <tr>
                                 <th style="width: 50px;">No</th>
                                 <th>ID Risiko</th>
-                                <th>Action</th>
                                 <th>Tanggal</th>
                                 <th>Dibuat Oleh</th>
                                 <th>Tingkat Risiko</th>
@@ -304,9 +504,6 @@
                             <tr th:each="p, iterStat : ${historyProjects}">
                                 <td th:text="${iterStat.count}">1</td>
                                 <td th:text="${p.idRisiko}">RSK-001</td>
-                                <td>
-                                    <span style="font-weight: bold; color: var(--primary-blue);" th:text="${p.actionType}"></span>
-                                </td>
                                 <td th:text="${#temporals.format(p.timestamp, 'dd MMM yyyy HH:mm')}"></td>
                                 <td th:text="${p.dibuatOleh}"></td>
                                 <td th:text="${p.riskLevel}"></td>
@@ -469,6 +666,17 @@
 
         function closeDetailModal() {
             document.getElementById('viewDetailModal').style.display = 'none';
+        }
+        function toggleTable(tableId) {
+            const tableDiv = document.getElementById(tableId);
+            const icon = document.getElementById('icon-' + tableId);
+            if (tableDiv.style.display === 'none') {
+                tableDiv.style.display = 'block';
+                icon.innerText = '▼';
+            } else {
+                tableDiv.style.display = 'none';
+                icon.innerText = '►';
+            }
         }
     </script>
 </body>

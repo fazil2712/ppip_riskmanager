@@ -19,6 +19,7 @@ public interface RiskProjectRepository extends JpaRepository<RiskProject, Long> 
     List<RiskProject> findByApprovalStatus(String approvalStatus);
     List<RiskProject> findByRiskOwnerAndApprovalStatus(String riskOwner, String approvalStatus);
     List<RiskProject> findByDibuatOlehAndApprovalStatusNot(String dibuatOleh, String approvalStatus);
+    List<RiskProject> findByDibuatOlehAndApprovalStatus(String dibuatOleh, String approvalStatus);
 
     List<RiskProject> findByApprovalStatusIn(List<String> statuses);
     List<RiskProject> findByRiskOwnerAndApprovalStatusIn(String riskOwner, List<String> statuses);

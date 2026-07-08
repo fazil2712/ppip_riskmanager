@@ -353,24 +353,29 @@ public class WebController {
         if (user == null) return "redirect:/login";
 
         List<RiskProject> projects;
+        List<RiskProject> approvedProjects;
         List<RiskProjectHistory> historyProjects = null;
         List<PengendalianRisiko> pendingTriwulan = null;
         
         if ("Admin".equals(user.getRole()) || "CORPORATE RISK OFFICER".equals(user.getRole())) {
             projects = riskProjectRepository.findByApprovalStatus("menunggu");
+            approvedProjects = riskProjectRepository.findByApprovalStatus("open");
             historyProjects = riskProjectHistoryRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "timestamp"));
             pendingTriwulan = pengendalianRisikoRepository.findByApprovalStatus("menunggu");
         } else if ("RiskOwner".equals(user.getRole())) {
             projects = riskProjectRepository.findByRiskOwnerAndApprovalStatus(user.getNama(), "menunggu");
+            approvedProjects = riskProjectRepository.findByRiskOwnerAndApprovalStatus(user.getNama(), "open");
             historyProjects = riskProjectHistoryRepository.findByRiskOwnerOrderByTimestampDesc(user.getNama());
             pendingTriwulan = pengendalianRisikoRepository.findByRiskProjectRiskOwnerAndApprovalStatus(user.getNama(), "menunggu");
         } else {
             projects = riskProjectRepository.findByDibuatOlehAndApprovalStatusNot(user.getNama(), "tersimpan");
+            approvedProjects = riskProjectRepository.findByDibuatOlehAndApprovalStatus(user.getNama(), "open");
             historyProjects = riskProjectHistoryRepository.findByDibuatOlehOrderByTimestampDesc(user.getNama());
             pendingTriwulan = pengendalianRisikoRepository.findByRiskProjectDibuatOlehAndApprovalStatus(user.getNama(), "menunggu");
         }
 
         model.addAttribute("projects", projects);
+        model.addAttribute("approvedProjects", approvedProjects);
         model.addAttribute("historyProjects", historyProjects);
         model.addAttribute("pendingTriwulan", pendingTriwulan);
         

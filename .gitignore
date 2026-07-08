@@ -39,3 +39,6 @@ logs/
 
 ### Graphify / Agents Output ###
 graphify-out/
+.agents/
+.mvn/
+
