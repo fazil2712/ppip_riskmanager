@@ -191,6 +191,53 @@ public class WebController {
         return "redirect:/identifikasi";
     }
 
+    @PostMapping("/identifikasi/edit")
+    public String editIdentifikasi(HttpSession session,
+                                   @RequestParam("id") Long id,
+                                   @RequestParam("idRisiko") String idRisiko,
+                                   @RequestParam("sasaranUnitKerja") String sasaranUnitKerja,
+                                   @RequestParam("konteksEksternal") String konteksEksternal,
+                                   @RequestParam("konteksInternal") String konteksInternal,
+                                   @RequestParam("risiko") String risiko,
+                                   @RequestParam(value = "sasaranFile", required = false) MultipartFile sasaranFile,
+                                   @RequestParam(value = "eksternalFile", required = false) MultipartFile eksternalFile,
+                                   @RequestParam(value = "internalFile", required = false) MultipartFile internalFile,
+                                   @RequestParam(value = "risikoFile", required = false) MultipartFile risikoFile,
+                                   RedirectAttributes redirectAttributes) {
+        
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user == null || (!"Admin".equals(user.getRole()) && !"CORPORATE RISK OFFICER".equals(user.getRole()) && !"RiskOfficer".equals(user.getRole()))) {
+            return "redirect:/dashboard";
+        }
+
+        RiskProject project = riskProjectRepository.findById(id).orElse(null);
+        if (project != null) {
+            // Verify ownership if not admin
+            if (!"Admin".equals(user.getRole()) && !user.getNama().equals(project.getDibuatOleh())) {
+                redirectAttributes.addFlashAttribute("error", "Anda tidak memiliki akses untuk mengedit proyek ini.");
+                return "redirect:/identifikasi";
+            }
+
+            project.setIdRisiko(idRisiko);
+            project.setNamaProject(idRisiko);
+            project.setSasaranUnitKerja(sasaranUnitKerja);
+            project.setKonteksEksternal(konteksEksternal);
+            project.setKonteksInternal(konteksInternal);
+            project.setRisiko(risiko);
+
+            // Update files only if new ones are provided
+            if (sasaranFile != null && !sasaranFile.isEmpty()) project.setSasaranUnitKerjaFile(saveProjectFile(sasaranFile, "sasaran"));
+            if (eksternalFile != null && !eksternalFile.isEmpty()) project.setKonteksEksternalFile(saveProjectFile(eksternalFile, "konteks_eksternal"));
+            if (internalFile != null && !internalFile.isEmpty()) project.setKonteksInternalFile(saveProjectFile(internalFile, "konteks_internal"));
+            if (risikoFile != null && !risikoFile.isEmpty()) project.setRisikoFile(saveProjectFile(risikoFile, "risiko"));
+
+            riskProjectRepository.save(project);
+            redirectAttributes.addFlashAttribute("successMessage", "Data Identifikasi Risiko berhasil diubah!");
+        }
+
+        return "redirect:/identifikasi";
+    }
+
     private String saveProjectFile(MultipartFile file, String folder) {
         if (file != null && !file.isEmpty()) {
             try {

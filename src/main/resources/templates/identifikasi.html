@@ -75,9 +75,25 @@
             <div class="card">
                 <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Input Data Awal Proyek</h3>
                 <form th:action="@{/identifikasi/add}" method="post" enctype="multipart/form-data">
-                    <div class="form-group" style="max-width: 300px;">
+                    <div class="form-group" style="max-width: 400px;">
                         <label>ID Risiko</label>
-                        <input type="text" class="form-control" name="idRisiko" required placeholder="Contoh: RSK-015">
+                        <div style="margin-bottom: 8px; font-size: 13px;">
+                            <label style="display:inline; font-weight:normal; margin-right:15px;">
+                                <input type="radio" name="idMode" value="new" checked onchange="handleIdModeChange()"> Buat ID Baru
+                            </label>
+                            <label style="display:inline; font-weight:normal;">
+                                <input type="radio" name="idMode" value="existing" onchange="handleIdModeChange()"> Lanjut ID Lama
+                            </label>
+                        </div>
+                        
+                        <div id="existingIdWrapper" style="display: none; margin-bottom: 8px;">
+                            <select id="existingPrefixSelect" class="form-control" onchange="updateFinalIdFromPrefix()">
+                                <option value="">-- Pilih Prefix --</option>
+                            </select>
+                        </div>
+                        
+                        <input type="text" class="form-control" name="idRisiko" id="finalIdRisiko" required placeholder="Contoh: RSK-015">
+                        <small style="color:var(--text-muted); display:block; margin-top:5px;">Gunakan ID baru jika proyek ini belum memiliki awalan. Pilih lanjut ID lama untuk membuat seri proyek otomatis berdasarkan prefix yang ada (misal: RTM-01 -> RTM-02).</small>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
@@ -114,6 +130,7 @@
                     <thead>
                         <tr>
                             <th style="width: 50px;">No</th>
+                            <th>Aksi</th>
                             <th>ID Risiko</th>
                             <th>Dibuat Oleh</th>
                             <th>Unit Kerja</th>
@@ -126,6 +143,10 @@
                     <tbody>
                         <tr th:each="p, iterStat : ${projects}">
                             <td th:text="${iterStat.count}">1</td>
+                            <td>
+                                <button type="button" class="btn-primary" style="padding: 5px 10px; font-size: 12px;" 
+                                    th:onclick="editProject([[${p.id}]], [[${p.idRisiko}]], [[${p.sasaranUnitKerja}]], [[${p.konteksEksternal}]], [[${p.konteksInternal}]], [[${p.risiko}]])">Edit</button>
+                            </td>
                             <td th:text="${p.idRisiko}">RSK-001</td>
                             <td th:text="${p.dibuatOleh}">Amrina Rosyada</td>
                             <td th:text="${p.unitKerja}">SPI, Manrisk & Kepatuhan</td>
@@ -148,7 +169,7 @@
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(projects)}">
-                            <td colspan="8" style="text-align: center; color: var(--text-muted);">Belum ada data identifikasi risiko.</td>
+                            <td colspan="9" style="text-align: center; color: var(--text-muted);">Belum ada data identifikasi risiko.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -156,5 +177,128 @@
             
         </div>
     </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:8px; width:90%; max-width:800px; max-height:90vh; overflow-y:auto; position:relative; margin: 5vh auto;">
+            <h3 style="margin-top:0;">Edit Identifikasi Risiko</h3>
+            <form th:action="@{/identifikasi/edit}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="id" id="editId">
+                <div class="form-group" style="max-width: 300px;">
+                    <label>ID Risiko</label>
+                    <input type="text" class="form-control" name="idRisiko" id="editIdRisiko" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <div class="form-group">
+                        <label>Sasaran Unit Kerja</label>
+                        <textarea class="form-control" name="sasaranUnitKerja" id="editSasaran" rows="3" required></textarea>
+                        <input type="file" name="sasaranFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Konteks Eksternal</label>
+                        <textarea class="form-control" name="konteksEksternal" id="editEksternal" rows="3" required></textarea>
+                        <input type="file" name="eksternalFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Konteks Internal</label>
+                        <textarea class="form-control" name="konteksInternal" id="editInternal" rows="3" required></textarea>
+                        <input type="file" name="internalFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Risiko</label>
+                        <textarea class="form-control" name="risiko" id="editRisiko" rows="3" required></textarea>
+                        <input type="file" name="risikoFile" accept=".pdf,.doc,.docx" style="margin-top:5px; font-size:12px;">
+                    </div>
+                </div>
+                <div style="margin-top:20px; display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary">Update Data</button>
+                    <button type="button" class="btn-primary" style="background:#dc3545;" onclick="closeEditModal()">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const projects = [
+            /*[# th:each="p : ${projects}"]*/
+            /*[[${p.idRisiko}]]*/ null,
+            /*[/]*/
+        ];
+
+        const prefixMap = {};
+        const regex = /^(.*?)-(\d+)$/;
+        
+        projects.forEach(id => {
+            if(id) {
+                const match = id.trim().match(regex);
+                if(match) {
+                    const prefix = match[1];
+                    const num = parseInt(match[2], 10);
+                    if(!prefixMap[prefix] || prefixMap[prefix] < num) {
+                        prefixMap[prefix] = num;
+                    }
+                }
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const select = document.getElementById("existingPrefixSelect");
+            let hasOptions = false;
+            for(let prefix in prefixMap) {
+                let option = document.createElement("option");
+                option.value = prefix;
+                option.textContent = prefix;
+                select.appendChild(option);
+                hasOptions = true;
+            }
+            if(!hasOptions) {
+                document.querySelector('input[name="idMode"][value="existing"]').disabled = true;
+            }
+        });
+
+        function handleIdModeChange() {
+            const mode = document.querySelector('input[name="idMode"]:checked').value;
+            const newWrapper = document.getElementById("newIdWrapper");
+            const existingWrapper = document.getElementById("existingIdWrapper");
+            const finalInput = document.getElementById("finalIdRisiko");
+            
+            if(mode === "new") {
+                existingWrapper.style.display = "none";
+                finalInput.readOnly = false;
+                finalInput.value = "";
+                finalInput.placeholder = "Contoh: RSK-015";
+            } else {
+                existingWrapper.style.display = "block";
+                finalInput.readOnly = true;
+                updateFinalIdFromPrefix();
+            }
+        }
+
+        function updateFinalIdFromPrefix() {
+            const select = document.getElementById("existingPrefixSelect");
+            if(select.value) {
+                const prefix = select.value;
+                const nextNum = prefixMap[prefix] + 1;
+                const nextNumStr = nextNum < 10 ? "0" + nextNum : nextNum.toString();
+                document.getElementById("finalIdRisiko").value = prefix + "-" + nextNumStr;
+            } else {
+                document.getElementById("finalIdRisiko").value = "";
+            }
+        }
+
+        function editProject(id, idRisiko, sasaran, eksternal, internal, risiko) {
+            document.getElementById("editId").value = id;
+            document.getElementById("editIdRisiko").value = idRisiko;
+            document.getElementById("editSasaran").value = sasaran;
+            document.getElementById("editEksternal").value = eksternal;
+            document.getElementById("editInternal").value = internal;
+            document.getElementById("editRisiko").value = risiko;
+            document.getElementById("editModal").style.display = "flex";
+        }
+
+        function closeEditModal() {
+            document.getElementById("editModal").style.display = "none";
+        }
+    </script>
 </body>
 </html>
