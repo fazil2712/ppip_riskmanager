@@ -115,8 +115,10 @@
                 </div>
             </div>
             <div class="profile-section">
-                <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/uploads/' + ${session.loggedInUser.fotoProfil}}" class="profile-pic" style="object-fit:cover;" alt="Profile">
-                <div th:unless="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" class="profile-pic"></div>
+                <div class="profile-pic" style="width: 50px; height: 50px; border-radius: 50%; background: #ddd; display: flex; justify-content: center; align-items: center; overflow: hidden; flex-shrink: 0;">
+                    <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/uploads/' + ${session.loggedInUser.fotoProfil}}" style="width:100%; height:100%; object-fit:cover;">
+                    <span th:unless="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" style="color:#888; font-size:24px;">👤</span>
+                </div>
                 <div>
                     <div style="font-size:12px; color:var(--text-muted);">Selamat datang</div>
                     <div style="font-weight:600; font-size:14px; margin-top:2px; color:var(--primary-blue);" th:text="${session.loggedInUser != null ? session.loggedInUser.nama : 'Unknown User'}">Hendi Aprian Lesmana</div>
@@ -134,9 +136,9 @@
                 ⚙️ Admin Panel
             </a>
 
-            <a th:href="@{/identifikasi}" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
-            <a th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
-            <a href="#" class="menu-item" style="padding-left: 40px;">Report</a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/identifikasi}" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
+            <a th:href="@{/report}" class="menu-item" style="padding-left: 40px;">Report</a>
             
             <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;">Log Out</a>
         </div>
@@ -241,6 +243,7 @@
                             <th>ID Risiko</th>
                             <th>Nama Project</th>
                             <th>Dibuat Oleh</th>
+                            <th>Risk Owner</th>
                             <th>Tahun / Kuartal</th>
                             <th>Risk Level</th>
                             <th>Status</th>
@@ -252,6 +255,7 @@
                             <td th:text="${p.idRisiko}"></td>
                             <td th:text="${p.namaProject}"></td>
                             <td th:text="${p.dibuatOleh}"></td>
+                            <td th:text="${p.riskOwner}"></td>
                             <td th:text="${p.tahun + ' / ' + p.kuartal}"></td>
                             <td>
                                 <strong th:if="${p.riskLevel == 'HIGH'}" style="color: #dc3545;">HIGH</strong>
@@ -266,6 +270,7 @@
                                         th:data-idrisiko="${p.idRisiko}"
                                         th:data-dibuatoleh="${p.dibuatOleh}"
                                         th:data-unitkerja="${p.unitKerja}"
+                                        th:data-riskowner="${p.riskOwner}"
                                         th:data-sasaran="${p.sasaranUnitKerja}"
                                         th:data-eksternal="${p.konteksEksternal}"
                                         th:data-internal="${p.konteksInternal}"
@@ -343,6 +348,12 @@
                     <div><label>Dibuat Oleh</label><input type="text" class="form-control" id="edit-p-dibuatOleh" name="dibuatOleh" required></div>
                     
                     <div><label>Unit Kerja</label><input type="text" class="form-control" id="edit-p-unitKerja" name="unitKerja" required></div>
+                    <div><label>Risk Owner</label>
+                        <select class="form-control" id="edit-p-riskowner" name="riskOwner" required>
+                            <option value="">-- Pilih Risk Owner --</option>
+                            <option th:each="ro : ${riskOwners}" th:value="${ro.nama}" th:text="${ro.nama}"></option>
+                        </select>
+                    </div>
                     <div><label>Sasaran Unit Kerja</label><input type="text" class="form-control" id="edit-p-sasaran" name="sasaranUnitKerja" required></div>
                     <div><label>Kategori Risiko</label>
                         <select class="form-control" id="edit-p-kategoririsiko" name="kategoriRisiko" required>
@@ -413,6 +424,7 @@
             document.getElementById('edit-p-idRisiko').value = btn.getAttribute('data-idrisiko');
             document.getElementById('edit-p-dibuatOleh').value = btn.getAttribute('data-dibuatoleh');
             document.getElementById('edit-p-unitKerja').value = btn.getAttribute('data-unitkerja');
+            document.getElementById('edit-p-riskowner').value = btn.getAttribute('data-riskowner');
             document.getElementById('edit-p-sasaran').value = btn.getAttribute('data-sasaran');
             document.getElementById('edit-p-kategoririsiko').value = btn.getAttribute('data-kategoriRisiko');
             document.getElementById('edit-p-eksternal').value = btn.getAttribute('data-eksternal');

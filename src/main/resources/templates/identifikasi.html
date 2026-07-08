@@ -47,8 +47,8 @@
             </div>
             
             <div class="profile-section" style="padding: 0 20px 20px 20px; border-bottom: 1px solid #eee; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
-                <div class="profile-pic" style="width: 50px; height: 50px; border-radius: 50%; background: #ddd; display: flex; justify-content: center; align-items: center; overflow: hidden;">
-                    <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/' + ${session.loggedInUser.fotoProfil}}" style="width:100%; height:100%; object-fit:cover;">
+                <div class="profile-pic" style="width: 50px; height: 50px; border-radius: 50%; background: #ddd; display: flex; justify-content: center; align-items: center; overflow: hidden; flex-shrink: 0;">
+                    <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/uploads/' + ${session.loggedInUser.fotoProfil}}" style="width:100%; height:100%; object-fit:cover;">
                     <span th:unless="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" style="color:#888; font-size:24px;">👤</span>
                 </div>
                 <div>
@@ -67,9 +67,9 @@
             <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin}" class="menu-item" style="padding-left: 40px; color: #dc3545;">
                 ⚙️ Admin Panel
             </a>
-            <a th:href="@{/identifikasi}" class="menu-item active" style="padding-left: 40px;">Identifikasi Risiko</a>
-            <a th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
-            <a href="#" class="menu-item" style="padding-left: 40px;">Report</a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/identifikasi}" class="menu-item active" style="padding-left: 40px;">Identifikasi Risiko</a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
+            <a th:href="@{/report}" class="menu-item" style="padding-left: 40px;">Report</a>
             
             <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;">Log Out</a>
         </div>
@@ -166,6 +166,18 @@
 
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
+                                Risk Owner <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <select class="form-control" name="riskOwner" required>
+                                    <option value="">-- Pilih Risk Owner --</option>
+                                    <option th:each="ro : ${riskOwners}" th:value="${ro.nama}" th:text="${ro.nama}"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
                                 Penyebab <span class="accordion-icon">▼</span>
                             </div>
                             <div class="accordion-content">
@@ -202,6 +214,70 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                Existing Control <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <textarea class="form-control" name="existingControl" rows="4" required oninvalid="openAccordion(this)" placeholder="Tuliskan existing control..."></textarea>
+                                <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                    <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Upload Dokumen Pendukung (Opsional):</label>
+                                    <input type="file" name="existingControlFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                Rencana Pengendalian <span class="accordion-icon">▼</span>
+                            </div>
+                            <div class="accordion-content">
+                                <textarea class="form-control" name="rencanaPengendalian" rows="4" required oninvalid="openAccordion(this)" placeholder="Tuliskan rencana pengendalian..."></textarea>
+                                <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                    <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Upload Dokumen Pendukung (Opsional):</label>
+                                    <input type="file" name="rencanaPengendalianFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item active" style="margin-top: 15px; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background: #fafafa;">
+                            <h4 style="margin-top:0; color:var(--primary-blue); font-size:14px; margin-bottom: 10px;">Penilaian Risiko</h4>
+                            <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+                                <div style="flex:1;">
+                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:5px;">Peluang (1-5)</label>
+                                    <select name="peluangScore" id="peluangScoreAdd" class="form-control" required onchange="calcRisk('Add')">
+                                        <option value="">-- Pilih --</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                    </select>
+                                </div>
+                                <div style="flex:1;">
+                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:5px;">Dampak (1-5)</label>
+                                    <select name="dampakScore" id="dampakScoreAdd" class="form-control" required onchange="calcRisk('Add')">
+                                        <option value="">-- Pilih --</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 15px; background: white; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                                <div style="flex:1;">
+                                    <span style="font-size:11px; color:var(--text-muted);">Skor:</span><br>
+                                    <strong id="skorDisplayAdd" style="font-size:16px;">-</strong>
+                                </div>
+                                <div style="flex:1;">
+                                    <span style="font-size:11px; color:var(--text-muted);">Tingkat Risiko:</span><br>
+                                    <strong id="levelDisplayAdd" style="font-size:14px;">-</strong>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                     
                     <button type="submit" class="btn-primary" style="margin-top: 15px; width:100%;">Simpan Data Proyek</button>
@@ -210,7 +286,7 @@
 
             <!-- Data Table Card -->
             <div class="card">
-                <h3 style="margin-top:0;">Daftar Identifikasi Risiko</h3>
+                <h3 style="margin-top:0;">List Registrasi Risiko</h3>
                 <table>
                     <thead>
                         <tr>
@@ -219,50 +295,111 @@
                             <th>ID Risiko</th>
                             <th>Dibuat Oleh</th>
                             <th>Unit Kerja</th>
+                            <th>Risk Owner</th>
                             <th>Kategori Risiko</th>
-                            <th>Sasaran Unit Kerja</th>
-                            <th>Konteks Eksternal</th>
-                            <th>Konteks Internal</th>
-                            <th>Risiko</th>
-                            <th>Penyebab</th>
-                            <th>Dampak</th>
+                            <th>Peluang</th>
+                            <th>Dampak (Nilai)</th>
+                            <th>Skor</th>
+                            <th>Tingkat Risiko</th>
+                            <th>Status Approval</th>
+                            <th>Detail</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="p, iterStat : ${projects}">
                             <td th:text="${iterStat.count}">1</td>
                             <td>
-                                <button type="button" class="btn-primary" style="padding: 5px 10px; font-size: 12px;" 
-                                    th:onclick="editProject([[${p.id}]], [[${p.idRisiko}]], [[${p.sasaranUnitKerja}]], [[${p.konteksEksternal}]], [[${p.konteksInternal}]], [[${p.risiko}]], [[${p.kategoriRisiko}]], [[${p.penyebab}]], [[${p.dampak}]])">Edit</button>
+                                <button type="button" th:if="${p.approvalStatus == 'tersimpan' || p.approvalStatus == 'rejected'}" class="btn-primary" style="padding: 5px 10px; font-size: 12px; margin-bottom: 5px;" 
+                                    th:onclick="editProject([[${p.id}]], [[${p.idRisiko}]], [[${p.sasaranUnitKerja}]], [[${p.konteksEksternal}]], [[${p.konteksInternal}]], [[${p.risiko}]], [[${p.kategoriRisiko}]], [[${p.penyebab}]], [[${p.dampak}]], [[${p.existingControl}]], [[${p.rencanaPengendalian}]], [[${p.peluangScore}]], [[${p.dampakScore}]], [[${p.riskOwner}]])">Edit</button>
+                                
+                                <form th:if="${p.approvalStatus == 'tersimpan' || p.approvalStatus == 'rejected'}" th:action="@{'/identifikasi/submit/' + ${p.id}}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin mensubmit data ini untuk approval?');">
+                                    <button type="submit" class="btn-primary" style="padding: 5px 10px; font-size: 12px; background-color: #28a745; width: 100%;">Submit</button>
+                                </form>
                             </td>
                             <td th:text="${p.idRisiko}">RSK-001</td>
                             <td th:text="${p.dibuatOleh}">Amrina Rosyada</td>
                             <td th:text="${p.unitKerja}">SPI, Manrisk & Kepatuhan</td>
+                            <td th:text="${p.riskOwner}"></td>
                             <td th:text="${p.kategoriRisiko}">Operasional</td>
-                            
+                            <td th:text="${p.peluangScore}"></td>
+                            <td th:text="${p.dampakScore}"></td>
+                            <td th:text="${p.totalRiskScore}"></td>
+                            <td th:text="${p.riskLevel}"></td>
                             <td>
-                                <span th:text="${p.sasaranUnitKerja}"></span><br>
-                                <a th:if="${p.sasaranUnitKerjaFile != null}" th:href="@{'/' + ${p.sasaranUnitKerjaFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                <span th:if="${p.approvalStatus == 'tersimpan'}" style="color: #6c757d; font-weight: bold;">Tersimpan</span>
+                                <span th:if="${p.approvalStatus == 'menunggu'}" style="color: #ffc107; font-weight: bold;">Menunggu</span>
+                                <span th:if="${p.approvalStatus == 'open'}" style="color: #28a745; font-weight: bold;">Diterima (Open)</span>
+                                <span th:if="${p.approvalStatus == 'rejected'}" style="color: #dc3545; font-weight: bold;">Ditolak</span>
+                                <div th:if="${p.approvalStatus == 'rejected' && p.rejectionReason != null}" style="font-size: 11px; color: #dc3545; margin-top: 4px;">Alasan: <span th:text="${p.rejectionReason}"></span></div>
                             </td>
                             <td>
-                                <span th:text="${p.konteksEksternal}"></span><br>
-                                <a th:if="${p.konteksEksternalFile != null}" th:href="@{'/' + ${p.konteksEksternalFile}}" target="_blank" class="file-link">📎 Download File</a>
-                            </td>
-                            <td>
-                                <span th:text="${p.konteksInternal}"></span><br>
-                                <a th:if="${p.konteksInternalFile != null}" th:href="@{'/' + ${p.konteksInternalFile}}" target="_blank" class="file-link">📎 Download File</a>
-                            </td>
-                            <td>
-                                <span th:text="${p.risiko}"></span><br>
-                                <a th:if="${p.risikoFile != null}" th:href="@{'/' + ${p.risikoFile}}" target="_blank" class="file-link">📎 Download File</a>
-                            </td>
-                            <td>
-                                <span th:text="${p.penyebab}"></span><br>
-                                <a th:if="${p.penyebabFile != null}" th:href="@{'/' + ${p.penyebabFile}}" target="_blank" class="file-link">📎 Download File</a>
-                            </td>
-                            <td>
-                                <span th:text="${p.dampak}"></span><br>
-                                <a th:if="${p.dampakFile != null}" th:href="@{'/' + ${p.dampakFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                <div style="display: flex; flex-direction: column; gap: 5px;">
+                                    <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                        th:onclick="'openDetailModal(\'detail-risiko-' + ${p.id} + '\', \'Detail Risiko\')'">Detail Risiko</button>
+                                    <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                        th:onclick="'openDetailModal(\'detail-pengendalian-' + ${p.id} + '\', \'Detail Pengendalian\')'">Detail Pengendalian</button>
+                                    <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                        th:onclick="'openDetailModal(\'detail-triwulan-' + ${p.id} + '\', \'Detail Update Triwulan\')'">Detail Triwulan</button>
+                                </div>
+
+                                <!-- Hidden Content for Modals -->
+                                <div th:id="'detail-risiko-' + ${p.id}" style="display:none;">
+                                    <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Sasaran Unit Kerja</h4>
+                                    <p th:text="${p.sasaranUnitKerja}"></p>
+                                    <a th:if="${p.sasaranUnitKerjaFile != null}" th:href="@{'/' + ${p.sasaranUnitKerjaFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    
+                                    <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Eksternal</h4>
+                                    <p th:text="${p.konteksEksternal}"></p>
+                                    <a th:if="${p.konteksEksternalFile != null}" th:href="@{'/' + ${p.konteksEksternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    
+                                    <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Internal</h4>
+                                    <p th:text="${p.konteksInternal}"></p>
+                                    <a th:if="${p.konteksInternalFile != null}" th:href="@{'/' + ${p.konteksInternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    
+                                    <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Peristiwa Risiko</h4>
+                                    <p th:text="${p.risiko}"></p>
+                                    <a th:if="${p.risikoFile != null}" th:href="@{'/' + ${p.risikoFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    
+                                    <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Penyebab</h4>
+                                    <p th:text="${p.penyebab}"></p>
+                                    <a th:if="${p.penyebabFile != null}" th:href="@{'/' + ${p.penyebabFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    
+                                    <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Dampak</h4>
+                                    <p th:text="${p.dampak}"></p>
+                                    <a th:if="${p.dampakFile != null}" th:href="@{'/' + ${p.dampakFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                </div>
+                                
+                                <div th:id="'detail-pengendalian-' + ${p.id}" style="display:none;">
+                                    <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Existing Control</h4>
+                                    <p th:text="${p.existingControl}"></p>
+                                    <a th:if="${p.existingControlFile != null}" th:href="@{'/' + ${p.existingControlFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    
+                                    <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Rencana Pengendalian</h4>
+                                    <p th:text="${p.rencanaPengendalian}"></p>
+                                    <a th:if="${p.rencanaPengendalianFile != null}" th:href="@{'/' + ${p.rencanaPengendalianFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                </div>
+                                
+                                <div th:id="'detail-triwulan-' + ${p.id}" style="display:none;">
+                                    <div th:if="${#lists.isEmpty(p.pengendalianRisikoList)}">
+                                        <p style="color: var(--text-muted); font-style: italic;">Belum ada update triwulan.</p>
+                                    </div>
+                                    <div th:each="pr : ${p.pengendalianRisikoList}" style="margin-bottom: 15px; padding: 15px; border: 1px solid #eee; border-left: 4px solid var(--primary-blue); border-radius: 4px; background: #f8f9fa;">
+                                        <h4 style="margin-top:0; color:var(--primary-blue); font-size:14px; margin-bottom: 10px;">
+                                            Update Triwulan Ke-<span th:text="${pr.triwulanKe}"></span>
+                                            <span style="float:right; font-size:11px; color:#666; font-weight:normal;" th:text="${pr.approvalStatus == 'open' ? '✅ Disetujui' : (pr.approvalStatus == 'menunggu' ? '⏳ Menunggu' : '❌ Ditolak')}"></span>
+                                        </h4>
+                                        <div style="font-size:13px; line-height:1.5;">
+                                            <div><strong>Realisasi Pengendalian:</strong></div>
+                                            <div style="margin-bottom:10px; white-space:pre-wrap;" th:text="${pr.realisasiPengendalian}"></div>
+                                            <div style="display:flex; gap:20px; background:white; padding:10px; border:1px solid #e0e0e0; border-radius:4px;">
+                                                <div><strong>Peluang:</strong> <span th:text="${pr.peluangScore}"></span></div>
+                                                <div><strong>Dampak:</strong> <span th:text="${pr.dampakScore}"></span></div>
+                                                <div><strong>Total Score:</strong> <span th:text="${pr.totalRiskScore}"></span></div>
+                                                <div><strong>Level Risiko:</strong> <span th:text="${pr.riskLevel}" style="font-weight:bold;"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(projects)}">
@@ -272,6 +409,19 @@
                 </table>
             </div>
             
+        </div>
+    </div>
+    <!-- View Detail Modal -->
+    <div id="viewDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:8px; width:90%; max-width:800px; max-height:80vh; overflow-y:auto; position:relative; margin: 10vh auto;">
+            <span style="position:absolute; top:20px; right:30px; font-size:24px; cursor:pointer;" onclick="closeDetailModal()">&times;</span>
+            <h3 id="viewDetailModalTitle" style="margin-top:0; color:var(--primary-blue); border-bottom:2px solid var(--primary-blue); padding-bottom:10px;">Detail</h3>
+            <div id="viewDetailModalContent" style="margin-top:20px; line-height:1.6;">
+                <!-- Content will be injected here -->
+            </div>
+            <div style="margin-top:20px; text-align:right;">
+                <button type="button" class="btn-primary" style="background-color:#6c757d;" onclick="closeDetailModal()">Tutup</button>
+            </div>
         </div>
     </div>
 
@@ -301,6 +451,17 @@
                                 <option value="Hukum">Hukum</option>
                                 <option value="Kepatuhan">Kepatuhan</option>
                                 <option value="Reputasi">Reputasi</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="accordion-item active">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            Risk Owner <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <select class="form-control" name="riskOwner" id="editRiskOwner" required>
+                                <option value="">-- Pilih Risk Owner --</option>
+                                <option th:each="ro : ${riskOwners}" th:value="${ro.nama}" th:text="${ro.nama}"></option>
                             </select>
                         </div>
                     </div>
@@ -376,6 +537,67 @@
                             </div>
                         </div>
                     </div>
+                    <div class="accordion-item active">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            Existing Control <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <textarea class="form-control" name="existingControl" id="editExistingControl" rows="4" required oninvalid="openAccordion(this)"></textarea>
+                            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Ganti Dokumen (Opsional):</label>
+                                <input type="file" name="existingControlFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item active">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            Rencana Pengendalian <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <textarea class="form-control" name="rencanaPengendalian" id="editRencanaPengendalian" rows="4" required oninvalid="openAccordion(this)"></textarea>
+                            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;">
+                                <label style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Ganti Dokumen (Opsional):</label>
+                                <input type="file" name="rencanaPengendalianFile" accept=".pdf,.doc,.docx" style="display:block; font-size:12px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item active" style="margin-top: 15px; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background: #fafafa;">
+                        <h4 style="margin-top:0; color:var(--primary-blue); font-size:14px; margin-bottom: 10px;">Penilaian Risiko</h4>
+                        <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+                            <div style="flex:1;">
+                                <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:5px;">Peluang (1-5)</label>
+                                <select name="peluangScore" id="editPeluangScore" class="form-control" required onchange="calcRisk('Edit')">
+                                    <option value="">-- Pilih --</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
+                            </div>
+                            <div style="flex:1;">
+                                <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:5px;">Dampak (1-5)</label>
+                                <select name="dampakScore" id="editDampakScore" class="form-control" required onchange="calcRisk('Edit')">
+                                    <option value="">-- Pilih --</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 15px; background: white; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                            <div style="flex:1;">
+                                <span style="font-size:11px; color:var(--text-muted);">Skor:</span><br>
+                                <strong id="skorDisplayEdit" style="font-size:16px;">-</strong>
+                            </div>
+                            <div style="flex:1;">
+                                <span style="font-size:11px; color:var(--text-muted);">Tingkat Risiko:</span><br>
+                                <strong id="levelDisplayEdit" style="font-size:14px;">-</strong>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
                     <button type="button" class="btn-primary" style="background:#dc3545;" onclick="closeEditModal()">Batal</button>
@@ -387,7 +609,7 @@
 
     <script th:inline="javascript">
         const projects = [
-            /*[# th:each="p : ${projects}"]*/
+            /*[# th:each="p : ${allProjects}"]*/
             /*[[${p.idRisiko}]]*/ null,
             /*[/]*/
         ];
@@ -453,7 +675,7 @@
             }
         }
 
-        function editProject(id, idRisiko, sasaran, eksternal, internal, risiko, kategoriRisiko, penyebab, dampak) {
+        function editProject(id, idRisiko, sasaran, eksternal, internal, risiko, kategoriRisiko, penyebab, dampak, existingControl, rencanaPengendalian, peluangScore, dampakScore, riskOwner) {
             document.getElementById("editId").value = id;
             document.getElementById("editIdRisiko").value = idRisiko;
             document.getElementById("editSasaran").value = sasaran;
@@ -463,7 +685,58 @@
             document.getElementById("editKategoriRisiko").value = kategoriRisiko;
             document.getElementById("editPenyebab").value = penyebab;
             document.getElementById("editDampak").value = dampak;
+            document.getElementById("editExistingControl").value = existingControl;
+            document.getElementById("editRencanaPengendalian").value = rencanaPengendalian;
+            document.getElementById("editPeluangScore").value = peluangScore;
+            document.getElementById("editDampakScore").value = dampakScore;
+            document.getElementById("editRiskOwner").value = riskOwner;
+            calcRisk('Edit');
             document.getElementById("editModal").style.display = "flex";
+        }
+
+        function calcRisk(prefix) {
+            const pVal = parseInt(document.getElementById('peluangScore' + prefix).value);
+            const dVal = parseInt(document.getElementById('dampakScore' + prefix).value);
+            const skorDisplay = document.getElementById('skorDisplay' + prefix);
+            const levelDisplay = document.getElementById('levelDisplay' + prefix);
+            
+            if (!pVal || !dVal || isNaN(pVal) || isNaN(dVal)) {
+                skorDisplay.innerText = '-';
+                levelDisplay.innerText = '-';
+                levelDisplay.style.color = '#555';
+                return;
+            }
+
+            const scoreMatrix = [
+                [7, 12, 17, 22, 25],
+                [4,  9, 14, 19, 24],
+                [3,  8, 13, 18, 23],
+                [2,  6, 11, 16, 21],
+                [1,  5, 10, 15, 20]
+            ];
+            
+            const levelMatrix = [
+                ["Low to Moderate", "Moderate", "Moderate to High", "High", "High"],
+                ["Low", "Low to Moderate", "Moderate", "Moderate to High", "High"],
+                ["Low", "Low to Moderate", "Moderate", "Moderate to High", "High"],
+                ["Low", "Low to Moderate", "Low to Moderate", "Moderate to High", "High"],
+                ["Low", "Low", "Low to Moderate", "Moderate", "High"]
+            ];
+            
+            const rowIndex = 5 - pVal;
+            const colIndex = dVal - 1;
+            
+            const score = scoreMatrix[rowIndex][colIndex];
+            const level = levelMatrix[rowIndex][colIndex];
+            
+            skorDisplay.innerText = score;
+            levelDisplay.innerText = level;
+            
+            if (level === 'High') levelDisplay.style.color = '#dc3545';
+            else if (level === 'Moderate to High') levelDisplay.style.color = '#fd7e14';
+            else if (level === 'Moderate') levelDisplay.style.color = '#ffc107';
+            else if (level === 'Low to Moderate') levelDisplay.style.color = '#17a2b8';
+            else levelDisplay.style.color = '#28a745';
         }
 
         function closeEditModal() {
@@ -498,6 +771,17 @@
                 return false;
             }
             return true;
+        }
+
+        function openDetailModal(contentDivId, title) {
+            document.getElementById('viewDetailModalTitle').innerText = title;
+            const contentHtml = document.getElementById(contentDivId).innerHTML;
+            document.getElementById('viewDetailModalContent').innerHTML = contentHtml;
+            document.getElementById('viewDetailModal').style.display = 'flex';
+        }
+
+        function closeDetailModal() {
+            document.getElementById('viewDetailModal').style.display = 'none';
         }
     </script>
 </body>

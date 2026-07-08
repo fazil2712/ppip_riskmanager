@@ -1,11 +1,42 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>PORTAL RISIKO - Pengendalian Risiko</title>
+    <title>Pengendalian Risiko - PPIP RISKmanager</title>
     <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .layout { display: flex; min-height: 100vh; }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
         .sidebar {
             width: 250px;
             background: white;
@@ -18,52 +49,29 @@
             height: 100vh;
             overflow-y: auto;
         }
-        .profile-section {
-            padding: 0 20px 20px 20px;
-            border-bottom: 1px solid #eee;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .profile-pic {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #ddd;
-            display: inline-block;
-        }
         .menu-item {
-            padding: 12px 20px; color: var(--text-muted); text-decoration: none; display: block; font-weight: 500;
+            padding: 12px 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: block;
+            font-weight: 500;
         }
-        .menu-item:hover, .menu-item.active { background: #f8f9fa; color: var(--primary-blue); border-left: 4px solid var(--primary-yellow); }
-        .main-content { flex: 1; padding: 20px 40px; background: white; }
-        
-        .form-section {
-            border: 1px solid #eee;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            background: #fdfdfd;
+        .menu-item:hover, .menu-item.active {
+            background: #f8f9fa;
+            color: var(--primary-blue);
+            border-left: 4px solid var(--primary-yellow);
         }
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            margin-top: 5px;
-            font-family: var(--font-family);
+        .main-content {
+            flex: 1;
+            padding: 20px 40px;
         }
-        .btn-save {
-            background-color: var(--card-teal);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: top; }
+        th { background: #b4c6e7; font-weight: bold; }
+        tr:hover { background-color: #f9f9f9; }
+        .file-link { display: inline-block; margin-top: 5px; color: var(--primary-blue); text-decoration: none; font-size: 12px; font-weight: 600; }
+        .file-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -75,9 +83,11 @@
                     PUPUK SRIWIDJAJA<br>PALEMBANG
                 </div>
             </div>
-            <div class="profile-section">
-                <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/uploads/' + ${session.loggedInUser.fotoProfil}}" class="profile-pic" style="object-fit:cover;" alt="Profile">
-                <div th:unless="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" class="profile-pic"></div>
+            <div class="profile-section" style="padding: 0 20px 20px 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #eee; margin-bottom: 20px;">
+                <div class="profile-pic" style="width: 50px; height: 50px; border-radius: 50%; background: #ddd; display: flex; justify-content: center; align-items: center; overflow: hidden; flex-shrink: 0;">
+                    <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/uploads/' + ${session.loggedInUser.fotoProfil}}" style="width:100%; height:100%; object-fit:cover;">
+                    <span th:unless="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" style="color:#888; font-size:24px;">👤</span>
+                </div>
                 <div>
                     <div style="font-size:12px; color:var(--text-muted);">Selamat datang</div>
                     <div style="font-weight:600; font-size:14px; margin-top:2px; color:var(--primary-blue);" th:text="${session.loggedInUser != null ? session.loggedInUser.nama : 'Unknown User'}">Hendi Aprian Lesmana</div>
@@ -95,35 +105,260 @@
                 ⚙️ Admin Panel
             </a>
 
-            <a href="#" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
-            <a th:href="@{/pengendalian}" class="menu-item active" style="padding-left: 40px;">Pengendalian Risiko</a>
-            <a href="#" class="menu-item" style="padding-left: 40px;">Report</a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/identifikasi}" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item active" style="padding-left: 40px;">Pengendalian Risiko</a>
+            <a th:href="@{/report}" class="menu-item" style="padding-left: 40px;">Report</a>
             
             <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;">Log Out</a>
         </div>
+
         <div class="main-content">
-            <h3>Detail Risiko</h3>
+            <h2 style="margin-top:0; color:var(--primary-blue);">Pengendalian Risiko (Update Triwulan)</h2>
+
+            <div th:if="${successMessage}" class="alert alert-success" style="background-color: #d4edda; color: #155724; padding: 15px; margin-bottom: 20px; border-radius: 4px; border: 1px solid #c3e6cb;">
+                <span th:text="${successMessage}"></span>
+            </div>
             
-            <div class="form-section">
-                <form action="#" method="post">
-                    <div style="margin-bottom:15px;">
-                        <input type="file" name="fileBukti">
-                    </div>
-                    
-                    <div style="margin-bottom:15px;">
-                        <label>Isi Realisasi Pengendalian risiko yang telah dilakukan s.d Triwulan-I tahun 2023....</label>
-                        <textarea class="form-control" rows="4" name="deskripsiRealisasi"></textarea>
-                    </div>
-                    
-                    <div style="margin-bottom:15px; width: 300px;">
-                        <label>Biaya (bila ada) :</label>
-                        <input type="number" class="form-control" name="biaya" value="0.00" step="0.01">
-                    </div>
-                    
-                    <button type="button" class="btn-save">SIMPAN</button>
-                </form>
+            <div th:if="${errorMessage}" class="alert alert-danger" style="background-color: #f8d7da; color: #721c24; padding: 15px; margin-bottom: 20px; border-radius: 4px; border: 1px solid #f5c6cb;">
+                <span th:text="${errorMessage}"></span>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h3>Permintaan Update Triwulan</h3>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">No</th>
+                                <th>ID Risiko</th>
+                                <th>Nama Project</th>
+                                <th>Risk Owner</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p, iterStat : ${requestedProjects}">
+                                <td th:text="${iterStat.count}"></td>
+                                <td th:text="${p.idRisiko}"></td>
+                                <td th:text="${p.namaProject}"></td>
+                                <td th:text="${p.riskOwner}"></td>
+                                <td>
+                                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                        <button class="btn-info" style="padding: 5px 10px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                                th:onclick="'openDetailModal(\'detail-risiko-' + ${p.id} + '\', \'Detail Project\')'">Detail</button>
+                                        <button class="btn-primary" style="padding: 5px 10px; font-size: 11px;" 
+                                                th:onclick="'openTriwulanModal(' + ${p.id} + ')'">Isi Triwulan</button>
+                                    </div>
+                                    
+                                    <!-- Hidden Detail Content -->
+                                    <div th:id="'detail-risiko-' + ${p.id}" style="display:none;">
+                                        <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Sasaran Unit Kerja</h4>
+                                        <p th:text="${p.sasaranUnitKerja}"></p>
+                                        <a th:if="${p.sasaranUnitKerjaFile != null}" th:href="@{'/' + ${p.sasaranUnitKerjaFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Eksternal</h4>
+                                        <p th:text="${p.konteksEksternal}"></p>
+                                        <a th:if="${p.konteksEksternalFile != null}" th:href="@{'/' + ${p.konteksEksternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Internal</h4>
+                                        <p th:text="${p.konteksInternal}"></p>
+                                        <a th:if="${p.konteksInternalFile != null}" th:href="@{'/' + ${p.konteksInternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Peristiwa Risiko</h4>
+                                        <p th:text="${p.risiko}"></p>
+                                        <a th:if="${p.risikoFile != null}" th:href="@{'/' + ${p.risikoFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Penyebab</h4>
+                                        <p th:text="${p.penyebab}"></p>
+                                        <a th:if="${p.penyebabFile != null}" th:href="@{'/' + ${p.penyebabFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Dampak</h4>
+                                        <p th:text="${p.dampak}"></p>
+                                        <a th:if="${p.dampakFile != null}" th:href="@{'/' + ${p.dampakFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Existing Control</h4>
+                                        <p th:text="${p.existingControl}"></p>
+                                        <a th:if="${p.existingControlFile != null}" th:href="@{'/' + ${p.existingControlFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Rencana Pengendalian</h4>
+                                        <p th:text="${p.rencanaPengendalian}"></p>
+                                        <a th:if="${p.rencanaPengendalianFile != null}" th:href="@{'/' + ${p.rencanaPengendalianFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(requestedProjects)}">
+                                <td colspan="5" style="text-align: center; color: #888;">Tidak ada permintaan update Triwulan.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Triwulan Modal -->
+    <div id="triwulanModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:8px; width:90%; max-width:800px; max-height:90vh; overflow-y:auto; position:relative; margin: 5vh auto;">
+            <span style="position:absolute; top:20px; right:30px; font-size:24px; cursor:pointer;" onclick="closeTriwulanModal()">&times;</span>
+            <h3 style="margin-top:0; color:var(--primary-blue); border-bottom:2px solid var(--primary-blue); padding-bottom:10px;">Form Update Triwulan</h3>
+            
+            <form th:action="@{/pengendalian/submit-triwulan}" method="post">
+                <input type="hidden" id="triwulanProjectId" name="projectId">
+                
+                <div style="margin-top: 15px; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background: #fafafa;">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-size:14px; font-weight:600; color:#333; display:block; margin-bottom:10px;">Realisasi Pengendalian</label>
+                        <textarea class="form-control" name="realisasiPengendalian" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px;" required placeholder="Tuliskan realisasi pengendalian pada triwulan ini..."></textarea>
+                    </div>
+                    
+                    <h4 style="margin-top:25px; color:var(--primary-blue); font-size:14px; margin-bottom: 10px;">Penilaian Risiko Residual</h4>
+                    <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+                        <div style="flex:1;">
+                            <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:5px;">Peluang (1-5)</label>
+                            <select name="peluangScore" id="peluangScore" class="form-control" style="width:100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px;" required onchange="calcRisk()">
+                                <option value="">-- Pilih --</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+                        <div style="flex:1;">
+                            <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:5px;">Dampak (1-5)</label>
+                            <select name="dampakScore" id="dampakScore" class="form-control" style="width:100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px;" required onchange="calcRisk()">
+                                <option value="">-- Pilih --</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; background: white; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px;">
+                        <div style="flex:1;">
+                            <label style="font-size:11px; color:var(--text-muted);">Total Score:</label>
+                            <div id="totalScoreDisplay" style="font-weight:bold; font-size:16px;">-</div>
+                        </div>
+                        <div style="flex:1;">
+                            <label style="font-size:11px; color:var(--text-muted);">Tingkat Risiko:</label>
+                            <div id="riskLevelDisplay" style="font-weight:bold; font-size:16px;">-</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn-secondary" onclick="closeTriwulanModal()" style="padding: 8px 15px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">Batal</button>
+                    <button type="submit" class="btn-primary" style="padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">Submit Update Triwulan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- View Detail Modal -->
+    <div id="viewDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:8px; width:90%; max-width:800px; max-height:80vh; overflow-y:auto; position:relative; margin: 10vh auto;">
+            <span style="position:absolute; top:20px; right:30px; font-size:24px; cursor:pointer;" onclick="closeDetailModal()">&times;</span>
+            <h3 id="viewDetailModalTitle" style="margin-top:0; color:var(--primary-blue); border-bottom:2px solid var(--primary-blue); padding-bottom:10px;">Detail</h3>
+            <div id="viewDetailModalContent" style="margin-top:20px; line-height:1.6;">
+                <!-- Content will be injected here -->
+            </div>
+            <div style="margin-top:20px; text-align:right;">
+                <button type="button" class="btn-primary" style="background-color:#6c757d;" onclick="closeDetailModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openTriwulanModal(projectId) {
+            document.getElementById('triwulanProjectId').value = projectId;
+            document.getElementById('triwulanModal').style.display = 'flex';
+            document.getElementById('peluangScore').value = '';
+            document.getElementById('dampakScore').value = '';
+            document.getElementById('totalScoreDisplay').innerText = '-';
+            document.getElementById('totalScoreDisplay').style.color = '#333';
+            document.getElementById('riskLevelDisplay').innerText = '-';
+            document.getElementById('riskLevelDisplay').style.color = '#333';
+        }
+
+        function closeTriwulanModal() {
+            document.getElementById('triwulanModal').style.display = 'none';
+        }
+        
+        function openDetailModal(contentId, title) {
+            document.getElementById('viewDetailModalTitle').innerText = title;
+            const content = document.getElementById(contentId).innerHTML;
+            document.getElementById('viewDetailModalContent').innerHTML = content;
+            document.getElementById('viewDetailModal').style.display = 'flex';
+        }
+        
+        function closeDetailModal() {
+            document.getElementById('viewDetailModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('triwulanModal')) {
+                closeTriwulanModal();
+            }
+            if (event.target == document.getElementById('viewDetailModal')) {
+                closeDetailModal();
+            }
+        }
+        
+        // 5x5 Matrix for risk calculation
+        const scoreMatrix = [
+            [7, 12, 17, 22, 25], 
+            [4, 9, 14, 19, 24],  
+            [3, 8, 13, 18, 23],   
+            [2, 6, 11, 16, 21],    
+            [1, 5, 10, 15, 20]      
+        ];
+        
+        const levelMatrix = [
+            ["Low to Moderate", "Moderate", "Moderate to High", "High", "High"],
+            ["Low", "Low to Moderate", "Moderate", "Moderate to High", "High"],
+            ["Low", "Low to Moderate", "Moderate", "Moderate to High", "High"],
+            ["Low", "Low to Moderate", "Low to Moderate", "Moderate to High", "High"],
+            ["Low", "Low", "Low to Moderate", "Moderate", "High"]
+        ];
+        
+        const levelColors = {
+            "Low": "#28a745",
+            "Low to Moderate": "#85c13e",
+            "Moderate": "#ffc107",
+            "Moderate to High": "#fd7e14",
+            "High": "#dc3545"
+        };
+        
+        function calcRisk() {
+            const p = parseInt(document.getElementById("peluangScore").value);
+            const d = parseInt(document.getElementById("dampakScore").value);
+            
+            const totalEl = document.getElementById("totalScoreDisplay");
+            const levelEl = document.getElementById("riskLevelDisplay");
+            
+            if(p >= 1 && p <= 5 && d >= 1 && d <= 5) {
+                const rowIndex = 5 - p;
+                const colIndex = d - 1;
+                
+                const score = scoreMatrix[rowIndex][colIndex];
+                const level = levelMatrix[rowIndex][colIndex];
+                
+                totalEl.innerText = score;
+                levelEl.innerText = level;
+                
+                const color = levelColors[level] || "#333";
+                totalEl.style.color = color;
+                levelEl.style.color = color;
+            } else {
+                totalEl.innerText = "-";
+                levelEl.innerText = "-";
+                totalEl.style.color = "#333";
+                levelEl.style.color = "#333";
+            }
+        }
+    </script>
 </body>
 </html>

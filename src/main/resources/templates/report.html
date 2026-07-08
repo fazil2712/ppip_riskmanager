@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>PORTAL RISIKO - Report Approval</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <style>
+        .layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 250px; background: white; box-shadow: 2px 0 5px rgba(0,0,0,0.05); padding: 20px 0;
+            display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+        }
+        .menu-item { padding: 12px 20px; color: var(--text-muted); text-decoration: none; display: block; font-weight: 500; }
+        .menu-item:hover, .menu-item.active { background: #f8f9fa; color: var(--primary-blue); border-left: 4px solid var(--primary-yellow); }
+        .main-content { flex: 1; padding: 20px 40px; }
+        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .btn-primary { background: var(--primary-blue); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-primary:hover { background: #003870; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: top; }
+        th { background: #b4c6e7; font-weight: bold; }
+        .file-link { display: inline-block; margin-top: 5px; color: var(--primary-blue); text-decoration: none; font-size: 12px; font-weight: 600; }
+        .file-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div style="padding: 0 20px 20px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; margin-bottom: 20px;">
+                <img th:src="@{/img/logo.webp}" alt="Logo" style="width: 40px; height: auto;">
+                <div style="font-weight: 700; color: var(--primary-blue); font-size: 14px; line-height: 1.2;">
+                    PUPUK SRIWIDJAJA<br>PALEMBANG
+                </div>
+            </div>
+            
+            <div class="profile-section" style="padding: 0 20px 20px 20px; border-bottom: 1px solid #eee; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+                <div class="profile-pic" style="width: 50px; height: 50px; border-radius: 50%; background: #ddd; display: flex; justify-content: center; align-items: center; overflow: hidden; flex-shrink: 0;">
+                    <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/uploads/' + ${session.loggedInUser.fotoProfil}}" style="width:100%; height:100%; object-fit:cover;">
+                    <span th:unless="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" style="color:#888; font-size:24px;">👤</span>
+                </div>
+                <div>
+                    <div style="font-size:12px; color:var(--text-muted);">Selamat datang</div>
+                    <div style="font-weight:600; font-size:14px; margin-top:2px; color:var(--primary-blue);" th:text="${session.loggedInUser != null ? session.loggedInUser.nama : 'Unknown User'}">User</div>
+                    <div style="font-weight:600; font-size:13px; color:var(--text-muted);" th:text="${session.loggedInUser != null ? '(' + session.loggedInUser.badgeId + ')' : '(Guest)'}">(0000)</div>
+                </div>
+            </div>
+            <div style="padding: 0 20px 20px 20px; border-bottom: 1px solid #eee;">
+                <small style="color:var(--text-muted)" th:text="${session.loggedInUser != null ? session.loggedInUser.departemen : 'Unknown Dept'}">DEPT</small><br>
+                <small style="color:var(--primary-yellow); font-weight:bold;">Role: <span th:text="${session.loggedInUser != null ? session.loggedInUser.role : 'None'}">Role</span></small>
+            </div>
+            
+            <a th:href="@{/dashboard}" class="menu-item">Dashboard</a>
+            <div style="padding: 12px 20px; font-weight:600; color:#333;">RISIKO</div>
+            <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin}" class="menu-item" style="padding-left: 40px; color: #dc3545;">
+                ⚙️ Admin Panel
+            </a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/identifikasi}" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
+            <a th:href="@{/report}" class="menu-item active" style="padding-left: 40px;">Report</a>
+            
+            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;">Log Out</a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <h2 style="margin-top:0; color:var(--primary-blue);">Report Approval</h2>
+            
+            <div th:if="${successMessage}" style="color: white; background: #28a745; padding: 10px; border-radius: 6px; margin-bottom: 20px;" th:text="${successMessage}"></div>
+            <div th:if="${error}" style="color: white; background: #dc3545; padding: 10px; border-radius: 6px; margin-bottom: 20px;" th:text="${error}"></div>
+
+            <!-- Report Table -->
+            <div class="card">
+                <h3 th:if="${session.loggedInUser.role == 'RiskOfficer'}" style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Status Proyek Saya</h3>
+                <h3 th:unless="${session.loggedInUser.role == 'RiskOfficer'}" style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Menunggu Persetujuan Anda</h3>
+                
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">No</th>
+                                <th th:if="${session.loggedInUser.role != 'RiskOfficer'}">Aksi</th>
+                                <th>ID Risiko</th>
+                                <th>Dibuat Oleh</th>
+                                <th>Unit Kerja</th>
+                                <th>Risk Owner</th>
+                                <th>Kategori Risiko</th>
+                                <th>Peluang</th>
+                                <th>Dampak (Nilai)</th>
+                                <th>Skor</th>
+                                <th>Tingkat Risiko</th>
+                                <th>Status Approval</th>
+                                <th>Detail</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p, iterStat : ${projects}">
+                                <td th:text="${iterStat.count}">1</td>
+                                <td th:if="${session.loggedInUser.role != 'RiskOfficer'}">
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <!-- Only show Accept if they haven't already accepted -->
+                                        <form th:if="${(session.loggedInUser.role == 'Admin' && p.adminApproval != 'approved') || (session.loggedInUser.role == 'RiskOwner' && p.riskOwnerApproval != 'approved')}" 
+                                              th:action="@{/report/approve}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui proyek ini?');">
+                                            <input type="hidden" name="id" th:value="${p.id}">
+                                            <button type="submit" class="btn-primary" style="padding: 5px; font-size: 11px; background-color: #28a745; width: 100%;">Terima</button>
+                                        </form>
+                                        
+                                        <!-- Reject button opens modal -->
+                                        <button type="button" th:if="${(session.loggedInUser.role == 'Admin' && p.adminApproval != 'rejected') || (session.loggedInUser.role == 'RiskOwner' && p.riskOwnerApproval != 'rejected')}"
+                                                class="btn-primary" style="padding: 5px; font-size: 11px; background-color: #dc3545; width: 100%;" 
+                                                th:onclick="'openRejectModal(' + ${p.id} + ')'">Tolak</button>
+
+                                        <!-- Already Approved Badge -->
+                                        <div th:if="${session.loggedInUser.role == 'Admin' && p.adminApproval == 'approved'}" style="font-size: 10px; color: #28a745; font-weight: bold; text-align: center;">✅ Disetujui Anda</div>
+                                        <div th:if="${session.loggedInUser.role == 'RiskOwner' && p.riskOwnerApproval == 'approved'}" style="font-size: 10px; color: #28a745; font-weight: bold; text-align: center;">✅ Disetujui Anda</div>
+                                    </div>
+                                </td>
+                                <td th:text="${p.idRisiko}">RSK-001</td>
+                                <td th:text="${p.dibuatOleh}"></td>
+                                <td th:text="${p.unitKerja}"></td>
+                                <td th:text="${p.riskOwner}"></td>
+                                <td th:text="${p.kategoriRisiko}"></td>
+                                <td th:text="${p.peluangScore}"></td>
+                                <td th:text="${p.dampakScore}"></td>
+                                <td th:text="${p.totalRiskScore}"></td>
+                                <td th:text="${p.riskLevel}"></td>
+                                <td>
+                                    <span th:if="${p.approvalStatus == 'menunggu'}" style="color: #ffc107; font-weight: bold;">Menunggu</span>
+                                    <span th:if="${p.approvalStatus == 'open'}" style="color: #28a745; font-weight: bold;">Diterima (Open)</span>
+                                    <span th:if="${p.approvalStatus == 'rejected'}" style="color: #dc3545; font-weight: bold;">Ditolak</span>
+                                    
+                                    <!-- Show individual approval statuses -->
+                                    <div th:if="${p.approvalStatus == 'menunggu'}" style="font-size: 10px; color: #555; margin-top: 5px; border-top: 1px dashed #ddd; padding-top: 2px;">
+                                        <div>RiskOwner: <span th:text="${p.riskOwnerApproval}"></span></div>
+                                        <div>Admin: <span th:text="${p.adminApproval}"></span></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'detail-risiko-' + ${p.id} + '\', \'Detail Risiko\')'">Detail Risiko</button>
+                                        <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'detail-pengendalian-' + ${p.id} + '\', \'Detail Pengendalian\')'">Detail Pengendalian</button>
+                                        
+                                        <!-- Alasan Button -->
+                                        <button type="button" th:if="${p.approvalStatus == 'rejected' && p.rejectionReason != null}" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'alasan-1-' + ${p.id} + '\', \'Alasan Penolakan\')'">Alasan Ditolak</button>
+                                    </div>
+
+                                    <!-- Hidden Content for Modals -->
+                                    <div th:id="'alasan-1-' + ${p.id}" style="display:none;">
+                                        <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Riwayat Penolakan</h4>
+                                        <div th:if="${#lists.isEmpty(p.rejectionHistories)}">
+                                            <p style="white-space: pre-wrap;" th:text="${p.rejectionReason}"></p>
+                                        </div>
+                                        <div th:each="rh : ${p.rejectionHistories}" style="margin-bottom: 10px; padding: 10px; border: 1px solid #eee; border-left: 4px solid #dc3545; border-radius: 4px; background: #fffafb;">
+                                            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 5px;">
+                                                <strong th:text="${rh.rejectionType}"></strong> - <span th:text="${#temporals.format(rh.rejectedAt, 'dd MMM yyyy HH:mm')}"></span>
+                                            </div>
+                                            <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">
+                                                Ditolak Oleh: <span th:text="${rh.rejectedByName}"></span> (<span th:text="${rh.rejectedByRole}"></span>)
+                                            </div>
+                                            <div style="white-space: pre-wrap; font-size: 13px; color: #333;" th:text="${rh.reason}"></div>
+                                        </div>
+                                    </div>
+                                    <div th:id="'detail-risiko-' + ${p.id}" style="display:none;">
+                                        <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Sasaran Unit Kerja</h4>
+                                        <p th:text="${p.sasaranUnitKerja}"></p>
+                                        <a th:if="${p.sasaranUnitKerjaFile != null}" th:href="@{'/' + ${p.sasaranUnitKerjaFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Eksternal</h4>
+                                        <p th:text="${p.konteksEksternal}"></p>
+                                        <a th:if="${p.konteksEksternalFile != null}" th:href="@{'/' + ${p.konteksEksternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Internal</h4>
+                                        <p th:text="${p.konteksInternal}"></p>
+                                        <a th:if="${p.konteksInternalFile != null}" th:href="@{'/' + ${p.konteksInternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Peristiwa Risiko</h4>
+                                        <p th:text="${p.risiko}"></p>
+                                        <a th:if="${p.risikoFile != null}" th:href="@{'/' + ${p.risikoFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Penyebab</h4>
+                                        <p th:text="${p.penyebab}"></p>
+                                        <a th:if="${p.penyebabFile != null}" th:href="@{'/' + ${p.penyebabFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Dampak</h4>
+                                        <p th:text="${p.dampak}"></p>
+                                        <a th:if="${p.dampakFile != null}" th:href="@{'/' + ${p.dampakFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    </div>
+                                    
+                                    <div th:id="'detail-pengendalian-' + ${p.id}" style="display:none;">
+                                        <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Existing Control</h4>
+                                        <p th:text="${p.existingControl}"></p>
+                                        <a th:if="${p.existingControlFile != null}" th:href="@{'/' + ${p.existingControlFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Rencana Pengendalian</h4>
+                                        <p th:text="${p.rencanaPengendalian}"></p>
+                                        <a th:if="${p.rencanaPengendalianFile != null}" th:href="@{'/' + ${p.rencanaPengendalianFile}}" target="_blank" class="file-link">📎 Download File</a>
+
+                                        <div th:if="${not #lists.isEmpty(p.pengendalianRisikoList)}">
+                                            <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px; margin-top:20px;">Riwayat Update Triwulan</h4>
+                                            <div th:each="triwulan : ${p.pengendalianRisikoList}" style="background: #f9f9f9; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #eee;">
+                                                <div style="font-weight: bold; margin-bottom: 5px;" th:text="'Triwulan ' + ${triwulan.triwulanKe}"></div>
+                                                <div><strong>Status:</strong> <span th:text="${triwulan.approvalStatus}"></span></div>
+                                                <div style="margin-top: 5px;"><strong>Realisasi:</strong> <span th:text="${triwulan.realisasiPengendalian}"></span></div>
+                                                <div style="margin-top: 5px;"><strong>Score:</strong> <span th:text="${triwulan.totalRiskScore}"></span></div>
+                                                <div><strong>Level Risiko:</strong> <span th:text="${triwulan.riskLevel}"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(projects)}">
+                                <td colspan="13" style="text-align: center; color: var(--text-muted);">Belum ada data untuk ditampilkan.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Triwulan Pending Table -->
+            <div class="card" style="margin-bottom: 20px;">
+                <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Menunggu Persetujuan Triwulan</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">No</th>
+                                <th>ID Risiko</th>
+                                <th>Triwulan Ke</th>
+                                <th>Realisasi Pengendalian</th>
+                                <th>Score</th>
+                                <th>Tingkat Risiko</th>
+                                <th>Status Approval</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="pr, iterStat : ${pendingTriwulan}">
+                                <td th:text="${iterStat.count}"></td>
+                                <td th:text="${pr.riskProject.idRisiko}"></td>
+                                <td th:text="${pr.triwulanKe}"></td>
+                                <td th:text="${pr.realisasiPengendalian}"></td>
+                                <td th:text="${pr.totalRiskScore}"></td>
+                                <td th:text="${pr.riskLevel}"></td>
+                                <td>
+                                    <div style="font-size: 11px;">
+                                        <div>RiskOwner: <span th:text="${pr.riskOwnerApproval}"></span></div>
+                                        <div>Admin: <span th:text="${pr.adminApproval}"></span></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 5px;">
+                                        <!-- Terima button for Admin -->
+                                        <form th:if="${session.loggedInUser.role == 'Admin' && pr.adminApproval == 'pending'}" th:action="@{/report/approve-triwulan}" method="post" style="margin:0;">
+                                            <input type="hidden" name="id" th:value="${pr.id}">
+                                            <button type="submit" class="btn-primary" style="padding: 5px; font-size: 11px; background-color: #28a745; border:none; border-radius:4px; color:white; cursor:pointer;">Terima</button>
+                                        </form>
+                                        <div th:if="${session.loggedInUser.role == 'Admin' && pr.adminApproval == 'approved'}" style="font-size: 10px; color: #28a745; font-weight: bold; text-align: center;">✅ Disetujui Anda</div>
+
+                                        <!-- Terima button for RiskOwner -->
+                                        <form th:if="${session.loggedInUser.role == 'RiskOwner' && pr.riskOwnerApproval == 'pending'}" th:action="@{/report/approve-triwulan}" method="post" style="margin:0;">
+                                            <input type="hidden" name="id" th:value="${pr.id}">
+                                            <button type="submit" class="btn-primary" style="padding: 5px; font-size: 11px; background-color: #28a745; border:none; border-radius:4px; color:white; cursor:pointer;">Terima</button>
+                                        </form>
+                                        <div th:if="${session.loggedInUser.role == 'RiskOwner' && pr.riskOwnerApproval == 'approved'}" style="font-size: 10px; color: #28a745; font-weight: bold; text-align: center;">✅ Disetujui Anda</div>
+
+                                        <!-- Tolak button -->
+                                        <button th:if="${(session.loggedInUser.role == 'Admin' && pr.adminApproval == 'pending') || (session.loggedInUser.role == 'RiskOwner' && pr.riskOwnerApproval == 'pending')}" 
+                                                type="button" class="btn-danger" style="padding: 5px; font-size: 11px; background-color: #dc3545; border:none; border-radius:4px; color:white; cursor:pointer;"
+                                                th:onclick="'openRejectTriwulanModal(' + ${pr.id} + ')'">Tolak</button>
+                                                
+                                        <div th:if="${session.loggedInUser.role == 'RiskOfficer'}" style="font-size: 10px; color: #ffc107; font-weight: bold; text-align: center; margin-top:5px;">⏳ Menunggu</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(pendingTriwulan)}">
+                                <td colspan="8" style="text-align: center; color: var(--text-muted);">Belum ada data untuk ditampilkan.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- History Table -->
+            <div class="card">
+                <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Riwayat Approval</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">No</th>
+                                <th>ID Risiko</th>
+                                <th>Action</th>
+                                <th>Tanggal</th>
+                                <th>Dibuat Oleh</th>
+                                <th>Tingkat Risiko</th>
+                                <th>Status Akhir</th>
+                                <th>Detail</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p, iterStat : ${historyProjects}">
+                                <td th:text="${iterStat.count}">1</td>
+                                <td th:text="${p.idRisiko}">RSK-001</td>
+                                <td>
+                                    <span style="font-weight: bold; color: var(--primary-blue);" th:text="${p.actionType}"></span>
+                                </td>
+                                <td th:text="${#temporals.format(p.timestamp, 'dd MMM yyyy HH:mm')}"></td>
+                                <td th:text="${p.dibuatOleh}"></td>
+                                <td th:text="${p.riskLevel}"></td>
+                                <td>
+                                    <span th:if="${p.approvalStatus == 'menunggu'}" style="color: #ffc107; font-weight: bold;">Menunggu</span>
+                                    <span th:if="${p.approvalStatus == 'open'}" style="color: #28a745; font-weight: bold;">Diterima (Open)</span>
+                                    <span th:if="${p.approvalStatus == 'rejected'}" style="color: #dc3545; font-weight: bold;">Ditolak</span>
+                                    
+                                    <div th:if="${p.approvalStatus == 'menunggu'}" style="font-size: 10px; color: #555; margin-top: 5px; border-top: 1px dashed #ddd; padding-top: 2px;">
+                                        <div>RiskOwner: <span th:text="${p.riskOwnerApproval}"></span></div>
+                                        <div>Admin: <span th:text="${p.adminApproval}"></span></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'history-detail-' + ${p.id} + '\', \'Detail Versi\')'">Detail Versi</button>
+                                        <button type="button" th:if="${p.approvalStatus == 'rejected' && p.rejectionReason != null}" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'history-alasan-' + ${p.id} + '\', \'Alasan Penolakan\')'">Alasan Ditolak</button>
+                                    </div>
+
+                                    <!-- Hidden Content for Modals -->
+                                    <div th:id="'history-alasan-' + ${p.id}" style="display:none;">
+                                        <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Riwayat Penolakan</h4>
+                                        <p style="white-space: pre-wrap;" th:text="${p.rejectionReason}"></p>
+                                    </div>
+
+                                    <div th:id="'history-detail-' + ${p.id}" style="display:none;">
+                                        <div th:if="${p.actionType != null && p.actionType.startsWith('UPDATE_TRIWULAN')}">
+                                            <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Realisasi Pengendalian</h4>
+                                            <p th:text="${p.realisasiPengendalian}"></p>
+                                            
+                                            <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Skor Risiko Update</h4>
+                                            <p>Peluang: <span th:text="${p.peluangScore}"></span>, Dampak: <span th:text="${p.dampakScore}"></span></p>
+                                            <p>Total: <span th:text="${p.totalRiskScore}"></span> (Level: <span th:text="${p.riskLevel}"></span>)</p>
+                                        </div>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px; margin-top:20px;">Sasaran Unit Kerja</h4>
+                                        <p th:text="${p.sasaranUnitKerja}"></p>
+                                        <a th:if="${p.sasaranUnitKerjaFile != null}" th:href="@{'/' + ${p.sasaranUnitKerjaFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Eksternal</h4>
+                                        <p th:text="${p.konteksEksternal}"></p>
+                                        <a th:if="${p.konteksEksternalFile != null}" th:href="@{'/' + ${p.konteksEksternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Internal</h4>
+                                        <p th:text="${p.konteksInternal}"></p>
+                                        <a th:if="${p.konteksInternalFile != null}" th:href="@{'/' + ${p.konteksInternalFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Peristiwa Risiko</h4>
+                                        <p th:text="${p.risiko}"></p>
+                                        <a th:if="${p.risikoFile != null}" th:href="@{'/' + ${p.risikoFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Penyebab</h4>
+                                        <p th:text="${p.penyebab}"></p>
+                                        <a th:if="${p.penyebabFile != null}" th:href="@{'/' + ${p.penyebabFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Dampak</h4>
+                                        <p th:text="${p.dampak}"></p>
+                                        <a th:if="${p.dampakFile != null}" th:href="@{'/' + ${p.dampakFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Existing Control</h4>
+                                        <p th:text="${p.existingControl}"></p>
+                                        <a th:if="${p.existingControlFile != null}" th:href="@{'/' + ${p.existingControlFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Rencana Pengendalian</h4>
+                                        <p th:text="${p.rencanaPengendalian}"></p>
+                                        <a th:if="${p.rencanaPengendalianFile != null}" th:href="@{'/' + ${p.rencanaPengendalianFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(historyProjects)}">
+                                <td colspan="8" style="text-align: center; color: var(--text-muted);">Belum ada riwayat approval.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div id="rejectModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:8px; width:90%; max-width:500px; position:relative; margin: 15vh auto;">
+            <span style="position:absolute; top:20px; right:30px; font-size:24px; cursor:pointer;" onclick="closeRejectModal()">&times;</span>
+            <h3 style="margin-top:0; color:#dc3545;">Tolak Proyek</h3>
+            <form th:action="@{/report/reject}" method="post">
+                <input type="hidden" name="id" id="rejectId">
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Alasan Penolakan:</label>
+                    <textarea name="reason" rows="4" style="width: 100%; padding:10px; border:1px solid #ddd; border-radius:4px;" required></textarea>
+                </div>
+                <div style="text-align:right;">
+                    <button type="button" class="btn-primary" style="background-color:#6c757d; margin-right:10px;" onclick="closeRejectModal()">Batal</button>
+                    <button type="submit" class="btn-primary" style="background-color:#dc3545;">Tolak Proyek</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Detail Modal -->
+    <div id="viewDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:8px; width:90%; max-width:800px; max-height:80vh; overflow-y:auto; position:relative; margin: 10vh auto;">
+            <span style="position:absolute; top:20px; right:30px; font-size:24px; cursor:pointer;" onclick="closeDetailModal()">&times;</span>
+            <h3 id="viewDetailModalTitle" style="margin-top:0; color:var(--primary-blue); border-bottom:2px solid var(--primary-blue); padding-bottom:10px;">Detail</h3>
+            <div id="viewDetailModalContent" style="margin-top:20px; line-height:1.6;">
+                <!-- Content will be injected here -->
+            </div>
+            <div style="margin-top:20px; text-align:right;">
+                <button type="button" class="btn-primary" style="background-color:#6c757d;" onclick="closeDetailModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Triwulan Modal -->
+    <div id="rejectTriwulanModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:8px; width:90%; max-width:500px; position:relative; margin: 15vh auto;">
+            <span style="position:absolute; top:20px; right:30px; font-size:24px; cursor:pointer;" onclick="closeRejectTriwulanModal()">&times;</span>
+            <h3 style="margin-top:0; color:#dc3545;">Tolak Update Triwulan</h3>
+            <form th:action="@{/report/reject-triwulan}" method="post">
+                <input type="hidden" name="id" id="rejectTriwulanId">
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Alasan Penolakan:</label>
+                    <textarea name="reason" rows="4" style="width: 100%; padding:10px; border:1px solid #ddd; border-radius:4px;" required></textarea>
+                </div>
+                <div style="text-align:right;">
+                    <button type="button" class="btn-primary" style="background-color:#6c757d; margin-right:10px;" onclick="closeRejectTriwulanModal()">Batal</button>
+                    <button type="submit" class="btn-primary" style="background-color:#dc3545;">Tolak</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openRejectModal(id) {
+            document.getElementById('rejectId').value = id;
+            document.getElementById('rejectModal').style.display = 'flex';
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').style.display = 'none';
+        }
+
+        function openRejectTriwulanModal(id) {
+            document.getElementById('rejectTriwulanId').value = id;
+            document.getElementById('rejectTriwulanModal').style.display = 'flex';
+        }
+
+        function closeRejectTriwulanModal() {
+            document.getElementById('rejectTriwulanModal').style.display = 'none';
+        }
+
+        function openDetailModal(contentDivId, title) {
+            document.getElementById('viewDetailModalTitle').innerText = title;
+            const contentHtml = document.getElementById(contentDivId).innerHTML;
+            document.getElementById('viewDetailModalContent').innerHTML = contentHtml;
+            document.getElementById('viewDetailModal').style.display = 'flex';
+        }
+
+        function closeDetailModal() {
+            document.getElementById('viewDetailModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

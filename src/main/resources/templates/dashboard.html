@@ -105,8 +105,10 @@
                 </div>
             </div>
             <div class="profile-section">
-                <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/uploads/' + ${session.loggedInUser.fotoProfil}}" class="profile-pic" style="object-fit:cover;" alt="Profile">
-                <div th:unless="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" class="profile-pic"></div>
+                <div class="profile-pic" style="width: 50px; height: 50px; border-radius: 50%; background: #ddd; display: flex; justify-content: center; align-items: center; overflow: hidden; flex-shrink: 0;">
+                    <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/uploads/' + ${session.loggedInUser.fotoProfil}}" style="width:100%; height:100%; object-fit:cover;">
+                    <span th:unless="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" style="color:#888; font-size:24px;">👤</span>
+                </div>
                 <div>
                     <div style="font-size:12px; color:var(--text-muted);">Selamat datang</div>
                     <div style="font-weight:600; font-size:14px; margin-top:2px; color:var(--primary-blue);" th:text="${session.loggedInUser != null ? session.loggedInUser.nama : 'Unknown User'}">Hendi Aprian Lesmana</div>
@@ -124,9 +126,9 @@
                 ⚙️ Admin Panel
             </a>
 
-            <a th:href="@{/identifikasi}" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
-            <a th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
-            <a href="#" class="menu-item" style="padding-left: 40px;">Report</a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/identifikasi}" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
+            <a th:href="@{/report}" class="menu-item" style="padding-left: 40px;">Report</a>
             
             <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;">Log Out</a>
         </div>
@@ -143,16 +145,7 @@
                             <option value="2025" th:selected="${selectedYear == 2025}">2025</option>
                         </select>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <label for="quarter" style="font-weight: 600; color: var(--text-muted); margin:0;">Kuartal:</label>
-                        <select name="quarter" id="quarter" onchange="document.getElementById('yearFilterForm').submit();" style="padding: 6px 12px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit;">
-                            <option value="">Semua</option>
-                            <option value="Q1" th:selected="${selectedQuarter == 'Q1'}">Q1 (Jan-Mar)</option>
-                            <option value="Q2" th:selected="${selectedQuarter == 'Q2'}">Q2 (Apr-Jun)</option>
-                            <option value="Q3" th:selected="${selectedQuarter == 'Q3'}">Q3 (Jul-Sep)</option>
-                            <option value="Q4" th:selected="${selectedQuarter == 'Q4'}">Q4 (Oct-Dec)</option>
-                        </select>
-                    </div>
+
                 </form>
                 <span style="color:var(--text-muted)">06 March 2023 15:39:45 🔔</span>
             </div>
@@ -194,7 +187,7 @@
                     <canvas id="chart2"></canvas>
                 </div>
                 <div class="chart-container">
-                    <h4 style="margin-top:0;">Risiko Berdasarkan Bidang Risiko</h4>
+                    <h4 style="margin-top:0;">Risiko Berdasarkan Kategori Risiko</h4>
                     <canvas id="chart3"></canvas>
                 </div>
             </div>
@@ -294,8 +287,20 @@
 
     <script th:inline="javascript">
         /*<![CDATA[*/
-        const projects = /*[[${projects}]]*/ [];
-        
+        const projects = [];
+        /*[# th:each="p : ${projects}"]*/
+        projects.push({
+            idRisiko: [[${p.idRisiko}]],
+            namaProject: [[${p.namaProject}]],
+            unitKerja: [[${p.unitKerja}]],
+            kategoriRisiko: [[${p.kategoriRisiko}]],
+            status: [[${p.status}]],
+            riskLevel: [[${p.riskLevel}]],
+            peluangScore: [[${p.peluangScore}]],
+            dampakScore: [[${p.dampakScore}]]
+        });
+        /*[/]*/
+
         // 1. Chart 1: Risk Level
         const riskCounts = {};
         projects.forEach(p => {
@@ -333,11 +338,11 @@
             statusCounts[st] = (statusCounts[st] || 0) + 1;
         });
         
-        // 3. Chart 3: Bidang Risiko
-        const bidangCounts = {};
+        // 3. Chart 3: Kategori Risiko
+        const kategoriRisikoCounts = {};
         projects.forEach(p => {
-            const bd = p.bidang || 'Lainnya';
-            bidangCounts[bd] = (bidangCounts[bd] || 0) + 1;
+            const bd = p.kategoriRisiko || 'Lainnya';
+            kategoriRisikoCounts[bd] = (kategoriRisikoCounts[bd] || 0) + 1;
         });
 
         // Helper to get labels/data from counts object
@@ -350,7 +355,7 @@
         };
 
         const chart2Data = getChartData(statusCounts);
-        const chart3Data = getChartData(bidangCounts);
+        const chart3Data = getChartData(kategoriRisikoCounts);
         
         const commonOptions = { responsive: true, plugins: { legend: { display: true, position: 'bottom' } } };
 
@@ -443,7 +448,7 @@
                                 <span style="display:inline-block; background:white; border:1px solid #ccc; border-radius:50%; width:22px; height:22px; text-align:center; line-height:20px; font-size:11px; margin-right:5px;">${globalProjectIndex}</span> 
                                 ${proj.idRisiko} - ${proj.namaProject}
                             </strong> <br> 
-                            <small style="color:var(--text-muted)">Unit Kerja: ${proj.unitKerja} | Bidang: ${proj.bidang} | Status: ${proj.status}</small>`;
+                            <small style="color:var(--text-muted)">Unit Kerja: ${proj.unitKerja} | Kategori Risiko: ${proj.kategoriRisiko} | Status: ${proj.status}</small>`;
                         
                         detailsList.appendChild(detailItem);
                         

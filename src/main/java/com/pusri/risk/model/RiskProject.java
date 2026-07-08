@@ -17,6 +17,7 @@ public class RiskProject {
     private String idRisiko;
     private String dibuatOleh;
     private String unitKerja;
+    private String riskOwner;
     @Column(columnDefinition = "TEXT")
     private String sasaranUnitKerja;
     private String sasaranUnitKerjaFile;
@@ -41,6 +42,13 @@ public class RiskProject {
     private String dampak;
     private String dampakFile;
     
+    @Column(columnDefinition = "TEXT")
+    private String existingControl;
+    private String existingControlFile;
+    @Column(columnDefinition = "TEXT")
+    private String rencanaPengendalian;
+    private String rencanaPengendalianFile;
+    
     // Year for filtering
     private Integer tahun;
     private String kuartal; // Q1, Q2, Q3, Q4
@@ -53,8 +61,23 @@ public class RiskProject {
     private String riskLevel;
     private String status;
 
+    // Approval Workflow Fields
+    private String approvalStatus = "tersimpan"; // tersimpan, menunggu, open, rejected
+    private String adminApproval = "pending";    // pending, approved, rejected
+    private String riskOwnerApproval = "pending"; // pending, approved, rejected
+    @Column(columnDefinition = "TEXT")
+    private String rejectionReason;
+
+    // Flag for Triwulan Updates
+    private boolean updateTriwulanRequested = false;
+
     @OneToMany(mappedBy = "riskProject", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OrderBy("triwulanKe ASC")
     private List<PengendalianRisiko> pengendalianRisikoList;
+    
+    @OneToMany(mappedBy = "riskProject", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OrderBy("rejectedAt DESC")
+    private List<RejectionHistory> rejectionHistories;
 
     public RiskProject() {}
 
@@ -121,6 +144,14 @@ public class RiskProject {
 
     public void setDibuatOleh(String dibuatOleh) {
         this.dibuatOleh = dibuatOleh;
+    }
+
+    public String getRiskOwner() {
+        return riskOwner;
+    }
+
+    public void setRiskOwner(String riskOwner) {
+        this.riskOwner = riskOwner;
     }
 
     public String getUnitKerja() {
@@ -235,6 +266,38 @@ public class RiskProject {
         this.dampakFile = dampakFile;
     }
 
+    public String getExistingControl() {
+        return existingControl;
+    }
+
+    public void setExistingControl(String existingControl) {
+        this.existingControl = existingControl;
+    }
+
+    public String getExistingControlFile() {
+        return existingControlFile;
+    }
+
+    public void setExistingControlFile(String existingControlFile) {
+        this.existingControlFile = existingControlFile;
+    }
+
+    public String getRencanaPengendalian() {
+        return rencanaPengendalian;
+    }
+
+    public void setRencanaPengendalian(String rencanaPengendalian) {
+        this.rencanaPengendalian = rencanaPengendalian;
+    }
+
+    public String getRencanaPengendalianFile() {
+        return rencanaPengendalianFile;
+    }
+
+    public void setRencanaPengendalianFile(String rencanaPengendalianFile) {
+        this.rencanaPengendalianFile = rencanaPengendalianFile;
+    }
+
     public Integer getTahun() {
         return tahun;
     }
@@ -334,5 +397,53 @@ public class RiskProject {
 
     public void setPengendalianRisikoList(List<PengendalianRisiko> pengendalianRisikoList) {
         this.pengendalianRisikoList = pengendalianRisikoList;
+    }
+
+    public boolean isUpdateTriwulanRequested() {
+        return updateTriwulanRequested;
+    }
+
+    public void setUpdateTriwulanRequested(boolean updateTriwulanRequested) {
+        this.updateTriwulanRequested = updateTriwulanRequested;
+    }
+
+    public String getApprovalStatus() {
+        return approvalStatus;
+    }
+
+    public void setApprovalStatus(String approvalStatus) {
+        this.approvalStatus = approvalStatus;
+    }
+
+    public String getAdminApproval() {
+        return adminApproval;
+    }
+
+    public void setAdminApproval(String adminApproval) {
+        this.adminApproval = adminApproval;
+    }
+
+    public String getRiskOwnerApproval() {
+        return riskOwnerApproval;
+    }
+
+    public void setRiskOwnerApproval(String riskOwnerApproval) {
+        this.riskOwnerApproval = riskOwnerApproval;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
+    }
+
+    public List<RejectionHistory> getRejectionHistories() {
+        return rejectionHistories;
+    }
+
+    public void setRejectionHistories(List<RejectionHistory> rejectionHistories) {
+        this.rejectionHistories = rejectionHistories;
     }
 }
