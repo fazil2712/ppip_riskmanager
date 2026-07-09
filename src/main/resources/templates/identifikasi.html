@@ -71,7 +71,7 @@
             <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
             <a th:href="@{/report}" class="menu-item" style="padding-left: 40px;">Report</a>
             
-            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;">Log Out</a>
+            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;" onclick="return confirm('Apakah Anda yakin ingin log out?');">Log Out</a>
         </div>
 
         <!-- Main Content -->
@@ -104,6 +104,36 @@
                         <input type="text" class="form-control" name="idRisiko" id="finalIdRisiko" required placeholder="Contoh: RSK-015">
                         <small style="color:var(--text-muted); display:block; margin-top:5px;">Gunakan ID baru jika proyek ini belum memiliki awalan. Pilih lanjut ID lama untuk membuat seri otomatis (misal: RTM-01 -> RTM-02).</small>
                     </div>
+
+                    <div style="display: flex; gap: 15px; max-width: 400px; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <label>Tahun Proyek</label>
+                            <select class="form-control" name="tahun" id="tahunSelect" required>
+                                <!-- Script will populate years from 2020 to current year -->
+                            </select>
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Triwulan Awal</label>
+                            <select class="form-control" name="kuartal" required>
+                                <option value="1">Triwulan 1</option>
+                                <option value="2">Triwulan 2</option>
+                                <option value="3">Triwulan 3</option>
+                                <option value="4">Triwulan 4</option>
+                            </select>
+                        </div>
+                    </div>
+                    <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const yearSelect = document.getElementById('tahunSelect');
+                                const currentYear = new Date().getFullYear();
+                                for (let year = currentYear; year >= 2020; year--) {
+                                    let option = document.createElement('option');
+                                    option.value = year;
+                                    option.text = year;
+                                    yearSelect.appendChild(option);
+                                }
+                            });
+                        </script>
 
                     <div style="display: flex; flex-direction: column;">
                         <div class="accordion-item active">
@@ -310,7 +340,7 @@
                             <td th:text="${iterStat.count}">1</td>
                             <td>
                                 <button type="button" th:if="${p.approvalStatus == 'tersimpan' || p.approvalStatus == 'rejected'}" class="btn-primary" style="padding: 5px 10px; font-size: 12px; margin-bottom: 5px;" 
-                                    th:onclick="editProject([[${p.id}]], [[${p.idRisiko}]], [[${p.sasaranUnitKerja}]], [[${p.konteksEksternal}]], [[${p.konteksInternal}]], [[${p.risiko}]], [[${p.kategoriRisiko}]], [[${p.penyebab}]], [[${p.dampak}]], [[${p.existingControl}]], [[${p.rencanaPengendalian}]], [[${p.peluangScore}]], [[${p.dampakScore}]], [[${p.riskOwner}]])">Edit</button>
+                                    th:onclick="editProject([[${p.id}]], [[${p.idRisiko}]], [[${p.sasaranUnitKerja}]], [[${p.konteksEksternal}]], [[${p.konteksInternal}]], [[${p.risiko}]], [[${p.kategoriRisiko}]], [[${p.penyebab}]], [[${p.dampak}]], [[${p.existingControl}]], [[${p.rencanaPengendalian}]], [[${p.peluangScore}]], [[${p.dampakScore}]], [[${p.riskOwner}]], [[${p.tahun}]], [[${p.kuartal}]])">Edit</button>
                                 
                                 <form th:if="${p.approvalStatus == 'tersimpan' || p.approvalStatus == 'rejected'}" th:action="@{'/identifikasi/submit/' + ${p.id}}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin mensubmit data ini untuk approval?');">
                                     <button type="submit" class="btn-primary" style="padding: 5px 10px; font-size: 12px; background-color: #28a745; width: 100%;">Submit</button>
@@ -385,7 +415,7 @@
                                     </div>
                                     <div th:each="pr : ${p.pengendalianRisikoList}" style="margin-bottom: 15px; padding: 15px; border: 1px solid #eee; border-left: 4px solid var(--primary-blue); border-radius: 4px; background: #f8f9fa;">
                                         <h4 style="margin-top:0; color:var(--primary-blue); font-size:14px; margin-bottom: 10px;">
-                                            Update Triwulan Ke-<span th:text="${pr.triwulanKe}"></span>
+                                            Update Triwulan Ke-<span th:text="${pr.triwulanKe}"></span> (Tahun <span th:text="${pr.triwulanTahun != null ? pr.triwulanTahun : p.tahun}"></span>)
                                             <span style="float:right; font-size:11px; color:#666; font-weight:normal;" th:text="${pr.approvalStatus == 'open' ? '✅ Disetujui' : (pr.approvalStatus == 'menunggu' ? '⏳ Menunggu' : '❌ Ditolak')}"></span>
                                         </h4>
                                         <div style="font-size:13px; line-height:1.5;">
@@ -435,6 +465,35 @@
                     <label>ID Risiko</label>
                     <input type="text" class="form-control" name="idRisiko" id="editIdRisiko" required readonly style="background:#f4f4f4;">
                 </div>
+                <div style="display: flex; gap: 15px; max-width: 300px; margin-bottom: 15px;">
+                    <div style="flex: 1;">
+                        <label>Tahun Proyek</label>
+                        <select class="form-control" name="tahun" id="editTahunSelect" required>
+                            <!-- Script will populate years -->
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Triwulan Awal</label>
+                        <select class="form-control" name="kuartal" id="editKuartalSelect" required>
+                            <option value="1">Triwulan 1</option>
+                            <option value="2">Triwulan 2</option>
+                            <option value="3">Triwulan 3</option>
+                            <option value="4">Triwulan 4</option>
+                        </select>
+                    </div>
+                </div>
+                <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const editYearSelect = document.getElementById('editTahunSelect');
+                            const currentYear = new Date().getFullYear();
+                            for (let year = currentYear; year >= 2020; year--) {
+                                let option = document.createElement('option');
+                                option.value = year;
+                                option.text = year;
+                                editYearSelect.appendChild(option);
+                            }
+                        });
+                    </script>
                 <div style="display: flex; flex-direction: column;">
                     <div class="accordion-item active">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
@@ -675,7 +734,7 @@
             }
         }
 
-        function editProject(id, idRisiko, sasaran, eksternal, internal, risiko, kategoriRisiko, penyebab, dampak, existingControl, rencanaPengendalian, peluangScore, dampakScore, riskOwner) {
+        function editProject(id, idRisiko, sasaran, eksternal, internal, risiko, kategoriRisiko, penyebab, dampak, existingControl, rencanaPengendalian, peluangScore, dampakScore, riskOwner, tahun, kuartal) {
             document.getElementById("editId").value = id;
             document.getElementById("editIdRisiko").value = idRisiko;
             document.getElementById("editSasaran").value = sasaran;
@@ -690,6 +749,8 @@
             document.getElementById("editPeluangScore").value = peluangScore;
             document.getElementById("editDampakScore").value = dampakScore;
             document.getElementById("editRiskOwner").value = riskOwner;
+            document.getElementById("editTahunSelect").value = tahun;
+            document.getElementById("editKuartalSelect").value = kuartal || '1';
             calcRisk('Edit');
             document.getElementById("editModal").style.display = "flex";
         }

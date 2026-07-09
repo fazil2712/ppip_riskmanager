@@ -70,6 +70,8 @@ public class RiskProject {
 
     // Flag for Triwulan Updates
     private boolean updateTriwulanRequested = false;
+    private Integer requestedTriwulanKe;
+    private Integer requestedTriwulanTahun;
 
     @OneToMany(mappedBy = "riskProject", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @OrderBy("triwulanKe ASC")
@@ -445,5 +447,20 @@ public class RiskProject {
 
     public void setRejectionHistories(List<RejectionHistory> rejectionHistories) {
         this.rejectionHistories = rejectionHistories;
+    }
+    public Integer getRequestedTriwulanKe() {
+        return requestedTriwulanKe;
+    }
+
+    public void setRequestedTriwulanKe(Integer requestedTriwulanKe) {
+        this.requestedTriwulanKe = requestedTriwulanKe;
+    }
+
+    public Integer getRequestedTriwulanTahun() {
+        return requestedTriwulanTahun;
+    }
+
+    public void setRequestedTriwulanTahun(Integer requestedTriwulanTahun) {
+        this.requestedTriwulanTahun = requestedTriwulanTahun;
     }
 }

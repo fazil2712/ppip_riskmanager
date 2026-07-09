@@ -75,6 +75,8 @@ public class RiskProjectHistory {
     @Column(columnDefinition = "TEXT")
     private String rejectionReason;
 
+    private Integer triwulanTahun;
+
     public RiskProjectHistory() {
         this.timestamp = LocalDateTime.now();
     }
@@ -135,6 +137,7 @@ public class RiskProjectHistory {
         this.adminApproval = triwulan.getAdminApproval();
         this.riskOwnerApproval = triwulan.getRiskOwnerApproval();
         this.rejectionReason = triwulan.getRejectionReason();
+        this.triwulanTahun = triwulan.getTriwulanTahun();
     }
 
     // Getters and Setters
@@ -211,4 +214,6 @@ public class RiskProjectHistory {
     public void setRiskOwnerApproval(String riskOwnerApproval) { this.riskOwnerApproval = riskOwnerApproval; }
     public String getRejectionReason() { return rejectionReason; }
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
+    public Integer getTriwulanTahun() { return triwulanTahun; }
+    public void setTriwulanTahun(Integer triwulanTahun) { this.triwulanTahun = triwulanTahun; }
 }

@@ -109,7 +109,7 @@
             <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item active" style="padding-left: 40px;">Pengendalian Risiko</a>
             <a th:href="@{/report}" class="menu-item" style="padding-left: 40px;">Report</a>
             
-            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;">Log Out</a>
+            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;" onclick="return confirm('Apakah Anda yakin ingin log out?');">Log Out</a>
         </div>
 
         <div class="main-content">
@@ -147,7 +147,7 @@
                                         <button class="btn-info" style="padding: 5px 10px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
                                                 th:onclick="'openDetailModal(\'detail-risiko-' + ${p.id} + '\', \'Detail Project\')'">Detail</button>
                                         <button class="btn-primary" style="padding: 5px 10px; font-size: 11px;" 
-                                                th:onclick="'openTriwulanModal(' + ${p.id} + ')'">Isi Triwulan</button>
+                                                th:onclick="'openTriwulanModal(' + ${p.id} + ', ' + ${p.requestedTriwulanKe} + ', ' + ${p.requestedTriwulanTahun} + ')'">Isi Triwulan</button>
                                     </div>
                                     
                                     <!-- Hidden Detail Content -->
@@ -204,6 +204,10 @@
             
             <form th:action="@{/pengendalian/submit-triwulan}" method="post">
                 <input type="hidden" id="triwulanProjectId" name="projectId">
+                
+                <div style="background: #e9ecef; padding: 10px; border-radius: 4px; margin-top: 15px; font-weight: bold; color: var(--primary-blue);">
+                    Sedang Update: Triwulan Ke-<span id="displayTriwulanKe"></span> (Tahun <span id="displayTriwulanTahun"></span>)
+                </div>
                 
                 <div style="margin-top: 15px; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background: #fafafa;">
                     <div class="form-group" style="margin-bottom: 15px;">
@@ -272,8 +276,10 @@
     </div>
 
     <script>
-        function openTriwulanModal(projectId) {
+        function openTriwulanModal(projectId, triwulanKe, triwulanTahun) {
             document.getElementById('triwulanProjectId').value = projectId;
+            document.getElementById('displayTriwulanKe').innerText = triwulanKe || '-';
+            document.getElementById('displayTriwulanTahun').innerText = triwulanTahun || '-';
             document.getElementById('triwulanModal').style.display = 'flex';
             document.getElementById('peluangScore').value = '';
             document.getElementById('dampakScore').value = '';

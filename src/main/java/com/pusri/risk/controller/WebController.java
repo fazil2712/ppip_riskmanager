@@ -198,6 +198,8 @@ public class WebController {
                                   @RequestParam("riskOwner") String riskOwner,
                                   @RequestParam("peluangScore") Integer peluangScore,
                                   @RequestParam("dampakScore") Integer dampakScore,
+                                  @RequestParam("tahun") Integer tahun,
+                                  @RequestParam("kuartal") String kuartal,
                                   RedirectAttributes redirectAttributes) {
         
         User user = (User) session.getAttribute("loggedInUser");
@@ -225,14 +227,8 @@ public class WebController {
         project.calculateRiskLevels();
         project.setStatus("Open");
         
-        // Auto-assign Year and Quarter
-        LocalDate date = LocalDate.now();
-        project.setTahun(date.getYear());
-        int month = date.getMonthValue();
-        if (month <= 3) project.setKuartal("Q1");
-        else if (month <= 6) project.setKuartal("Q2");
-        else if (month <= 9) project.setKuartal("Q3");
-        else project.setKuartal("Q4");
+        project.setTahun(tahun);
+        project.setKuartal(kuartal);
 
         // Save files
         project.setSasaranUnitKerjaFile(saveProjectFile(sasaranFile, "sasaran"));
@@ -274,6 +270,8 @@ public class WebController {
                                    @RequestParam("riskOwner") String riskOwner,
                                    @RequestParam("peluangScore") Integer peluangScore,
                                    @RequestParam("dampakScore") Integer dampakScore,
+                                   @RequestParam("tahun") Integer tahun,
+                                   @RequestParam("kuartal") String kuartal,
                                    RedirectAttributes redirectAttributes) {
         
         User user = (User) session.getAttribute("loggedInUser");
@@ -303,6 +301,8 @@ public class WebController {
             project.setRiskOwner(riskOwner);
             project.setPeluangScore(peluangScore);
             project.setDampakScore(dampakScore);
+            project.setTahun(tahun);
+            project.setKuartal(kuartal);
             project.calculateRiskLevels();
 
             // Update files only if new ones are provided
@@ -669,13 +669,18 @@ public class WebController {
     }
 
     @PostMapping("/report/request-triwulan")
-    public String requestTriwulan(HttpSession session, @RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
+    public String requestTriwulan(HttpSession session, @RequestParam("id") Long id, 
+                                  @RequestParam("triwulanKe") Integer triwulanKe,
+                                  @RequestParam("triwulanTahun") Integer triwulanTahun,
+                                  RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user == null || "RiskOfficer".equals(user.getRole())) return "redirect:/login";
 
         RiskProject project = riskProjectRepository.findById(id).orElse(null);
         if (project != null && "open".equals(project.getApprovalStatus())) {
             project.setUpdateTriwulanRequested(true);
+            project.setRequestedTriwulanKe(triwulanKe);
+            project.setRequestedTriwulanTahun(triwulanTahun);
             riskProjectRepository.save(project);
             redirectAttributes.addFlashAttribute("successMessage", "Permintaan update triwulan berhasil dikirim ke Risk Officer.");
         }
@@ -699,7 +704,8 @@ public class WebController {
             pr.setPeluangScore(peluangScore);
             pr.setDampakScore(dampakScore);
             pr.calculateRiskMatrix();
-            pr.setTriwulanKe(project.getPengendalianRisikoList().size() + 1);
+            pr.setTriwulanKe(project.getRequestedTriwulanKe() != null ? project.getRequestedTriwulanKe() : (project.getPengendalianRisikoList().size() + 1));
+            pr.setTriwulanTahun(project.getRequestedTriwulanTahun() != null ? project.getRequestedTriwulanTahun() : project.getTahun());
             pr.setRiskProject(project);
             pr.setApprovalStatus("menunggu");
             pr.setAdminApproval("pending");
@@ -708,6 +714,8 @@ public class WebController {
             pengendalianRisikoRepository.save(pr);
 
             project.setUpdateTriwulanRequested(false);
+            project.setRequestedTriwulanKe(null);
+            project.setRequestedTriwulanTahun(null);
             riskProjectRepository.save(project);
             
             riskProjectHistoryRepository.save(new RiskProjectHistory(project, pr, "UPDATE_TRIWULAN_" + pr.getTriwulanKe()));
@@ -732,6 +740,14 @@ public class WebController {
 
             if ("approved".equals(pr.getAdminApproval()) && "approved".equals(pr.getRiskOwnerApproval())) {
                 pr.setApprovalStatus("open");
+                
+                // Update parent project with new scores
+                RiskProject project = pr.getRiskProject();
+                project.setPeluangScore(pr.getPeluangScore());
+                project.setDampakScore(pr.getDampakScore());
+                project.setTotalRiskScore(pr.getTotalRiskScore());
+                project.setRiskLevel(pr.getRiskLevel());
+                riskProjectRepository.save(project);
             }
             pengendalianRisikoRepository.save(pr);
             

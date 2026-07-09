@@ -130,7 +130,7 @@
             <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
             <a th:href="@{/report}" class="menu-item" style="padding-left: 40px;">Report</a>
             
-            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;">Log Out</a>
+            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;" onclick="return confirm('Apakah Anda yakin ingin log out?');">Log Out</a>
         </div>
         <div class="main-content">
             <div class="topbar" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #eee; margin-bottom: 30px;">

@@ -76,6 +76,58 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<groupId>com.microsoft.azure</groupId>
+				<artifactId>azure-webapp-maven-plugin</artifactId>
+				<version>2.13.0</version>
+				<configuration>
+					<schemaVersion>v2</schemaVersion>
+					<resourceGroup>riskmanager-rg</resourceGroup>
+					<appName>riskmanager-fazil</appName>
+					<pricingTier>F1</pricingTier>
+					<region>southeastasia</region>
+					<auth>
+						<type>azure_cli</type>
+					</auth>
+					<runtime>
+						<os>Linux</os>
+						<javaVersion>Java 17</javaVersion>
+						<webContainer>Java SE</webContainer>
+					</runtime>
+					<appSettings>
+						<property>
+							<name>DB_URL</name>
+							<value>jdbc:mysql://riskmanager-mysql.mysql.database.azure.com:3306/riskdb?useSSL=true&amp;requireSSL=false</value>
+						</property>
+						<property>
+							<name>DB_USER</name>
+							<value>riskadmin</value>
+						</property>
+						<property>
+							<name>DB_PASS</name>
+							<value>RiskManager@123</value>
+						</property>
+						<property>
+							<name>SPRING_JPA_DATABASE_PLATFORM</name>
+							<value>org.hibernate.dialect.MySQL8Dialect</value>
+						</property>
+						<property>
+							<name>SPRING_JPA_HIBERNATE_DDL_AUTO</name>
+							<value>update</value>
+						</property>
+					</appSettings>
+					<deployment>
+						<resources>
+							<resource>
+								<directory>${project.basedir}/target</directory>
+								<includes>
+									<include>*.jar</include>
+								</includes>
+							</resource>
+						</resources>
+					</deployment>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 

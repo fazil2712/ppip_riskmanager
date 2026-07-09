@@ -59,7 +59,7 @@
             <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
             <a th:href="@{/report}" class="menu-item active" style="padding-left: 40px;">Report</a>
             
-            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;">Log Out</a>
+            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;" onclick="return confirm('Apakah Anda yakin ingin log out?');">Log Out</a>
         </div>
 
         <!-- Main Content -->
@@ -147,6 +147,8 @@
                                             th:onclick="'openDetailModal(\'detail-risiko-' + ${p.id} + '\', \'Detail Risiko\')'">Detail Risiko</button>
                                         <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
                                             th:onclick="'openDetailModal(\'detail-pengendalian-' + ${p.id} + '\', \'Detail Pengendalian\')'">Detail Pengendalian</button>
+                                        <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'detail-triwulan-' + ${p.id} + '\', \'Detail Update Triwulan\')'">Detail Triwulan</button>
                                         
                                         <!-- Alasan Button -->
                                         <button type="button" th:if="${p.approvalStatus == 'rejected' && p.rejectionReason != null}" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;" 
@@ -203,15 +205,26 @@
                                         <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Rencana Pengendalian</h4>
                                         <p th:text="${p.rencanaPengendalian}"></p>
                                         <a th:if="${p.rencanaPengendalianFile != null}" th:href="@{'/' + ${p.rencanaPengendalianFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    </div>
 
-                                        <div th:if="${not #lists.isEmpty(p.pengendalianRisikoList)}">
-                                            <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px; margin-top:20px;">Riwayat Update Triwulan</h4>
-                                            <div th:each="triwulan : ${p.pengendalianRisikoList}" style="background: #f9f9f9; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #eee;">
-                                                <div style="font-weight: bold; margin-bottom: 5px;" th:text="'Triwulan ' + ${triwulan.triwulanKe}"></div>
-                                                <div><strong>Status:</strong> <span th:text="${triwulan.approvalStatus}"></span></div>
-                                                <div style="margin-top: 5px;"><strong>Realisasi:</strong> <span th:text="${triwulan.realisasiPengendalian}"></span></div>
-                                                <div style="margin-top: 5px;"><strong>Score:</strong> <span th:text="${triwulan.totalRiskScore}"></span></div>
-                                                <div><strong>Level Risiko:</strong> <span th:text="${triwulan.riskLevel}"></span></div>
+                                    <div th:id="'detail-triwulan-' + ${p.id}" style="display:none;">
+                                        <div th:if="${#lists.isEmpty(p.pengendalianRisikoList)}">
+                                            <p style="color: var(--text-muted); font-style: italic;">Belum ada update triwulan.</p>
+                                        </div>
+                                        <div th:each="prItem : ${p.pengendalianRisikoList}" style="margin-bottom: 15px; padding: 15px; border: 1px solid #eee; border-left: 4px solid var(--primary-blue); border-radius: 4px; background: #f8f9fa;">
+                                            <h4 style="margin-top:0; color:var(--primary-blue); font-size:14px; margin-bottom: 10px;">
+                                                Update Triwulan Ke-<span th:text="${prItem.triwulanKe}"></span>
+                                                <span style="float:right; font-size:11px; color:#666; font-weight:normal;" th:text="${prItem.approvalStatus == 'open' ? '✅ Disetujui' : (prItem.approvalStatus == 'menunggu' ? '⏳ Menunggu' : '❌ Ditolak')}"></span>
+                                            </h4>
+                                            <div style="font-size:13px; line-height:1.5;">
+                                                <div><strong>Realisasi Pengendalian:</strong></div>
+                                                <div style="margin-bottom:10px; white-space:pre-wrap;" th:text="${prItem.realisasiPengendalian}"></div>
+                                                <div style="display:flex; gap:20px; background:white; padding:10px; border:1px solid #e0e0e0; border-radius:4px;">
+                                                    <div><strong>Peluang:</strong> <span th:text="${prItem.peluangScore}"></span></div>
+                                                    <div><strong>Dampak:</strong> <span th:text="${prItem.dampakScore}"></span></div>
+                                                    <div><strong>Total Score:</strong> <span th:text="${prItem.totalRiskScore}"></span></div>
+                                                    <div><strong>Level Risiko:</strong> <span th:text="${prItem.riskLevel}" style="font-weight:bold;"></span></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -254,10 +267,9 @@
                             <tr th:each="p, iterStat : ${approvedProjects}">
                                 <td th:text="${iterStat.count}">1</td>
                                 <td>
-                                        <form th:action="@{/report/request-triwulan}" method="post" th:if="${p.approvalStatus == 'open' && !p.updateTriwulanRequested}">
-                                            <input type="hidden" name="id" th:value="${p.id}">
-                                            <button type="submit" class="btn-primary" style="padding: 5px; font-size: 11px; background-color: var(--primary-yellow); color: #333; width: 100%;">Minta Update Triwulan</button>
-                                        </form>
+                                        <button type="button" th:if="${p.approvalStatus == 'open' && !p.updateTriwulanRequested}" 
+                                                class="btn-primary" style="padding: 5px; font-size: 11px; background-color: var(--primary-yellow); color: #333; width: 100%;" 
+                                                th:onclick="'openRequestTriwulanModal(' + ${p.id} + ', ' + ${p.tahun} + ')'">Minta Update Triwulan</button>
                                         <span th:if="${p.updateTriwulanRequested}" style="font-size: 10px; color: var(--primary-yellow); font-weight: bold; text-align: center;">Update Diminta</span>
                                 </td>
                                 <td th:text="${p.idRisiko}">RSK-001</td>
@@ -494,7 +506,9 @@
                                 <th style="width: 50px;">No</th>
                                 <th>ID Risiko</th>
                                 <th>Tanggal</th>
+                                <th>Keterangan</th>
                                 <th>Dibuat Oleh</th>
+                                <th>Score</th>
                                 <th>Tingkat Risiko</th>
                                 <th>Status Akhir</th>
                                 <th>Detail</th>
@@ -505,7 +519,16 @@
                                 <td th:text="${iterStat.count}">1</td>
                                 <td th:text="${p.idRisiko}">RSK-001</td>
                                 <td th:text="${#temporals.format(p.timestamp, 'dd MMM yyyy HH:mm')}"></td>
+                                <td>
+                                    <span th:if="${p.actionType != null && p.actionType.startsWith('UPDATE_TRIWULAN')}" style="color: var(--primary-blue); font-weight: bold;">
+                                        Update Triwulan (Tahun <span th:text="${p.triwulanTahun != null ? p.triwulanTahun : '-'}"></span>, Ke-<span th:text="${#strings.substringAfter(p.actionType, 'UPDATE_TRIWULAN_')}"></span>)
+                                    </span>
+                                    <span th:if="${p.actionType == 'SUBMIT_IDENTIFIKASI' || p.actionType == null}" style="color: #555;">
+                                        Registrasi Risiko
+                                    </span>
+                                </td>
                                 <td th:text="${p.dibuatOleh}"></td>
+                                <td th:text="${p.totalRiskScore}"></td>
                                 <td th:text="${p.riskLevel}"></td>
                                 <td>
                                     <span th:if="${p.approvalStatus == 'menunggu'}" style="color: #ffc107; font-weight: bold;">Menunggu</span>
@@ -520,7 +543,12 @@
                                 <td>
                                     <div style="display: flex; flex-direction: column; gap: 5px;">
                                         <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
-                                            th:onclick="'openDetailModal(\'history-detail-' + ${p.id} + '\', \'Detail Versi\')'">Detail Versi</button>
+                                            th:onclick="'openDetailModal(\'history-risiko-' + ${p.id} + '\', \'Detail Risiko\')'">Detail Risiko</button>
+                                        <button type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'history-pengendalian-' + ${p.id} + '\', \'Detail Pengendalian\')'">Detail Pengendalian</button>
+                                        <button th:if="${p.actionType != null && p.actionType.startsWith('UPDATE_TRIWULAN')}" type="button" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
+                                            th:onclick="'openDetailModal(\'history-triwulan-' + ${p.id} + '\', \'Detail Update Triwulan\')'">Detail Triwulan</button>
+
                                         <button type="button" th:if="${p.approvalStatus == 'rejected' && p.rejectionReason != null}" class="btn-info" style="padding: 5px; font-size: 11px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;" 
                                             th:onclick="'openDetailModal(\'history-alasan-' + ${p.id} + '\', \'Alasan Penolakan\')'">Alasan Ditolak</button>
                                     </div>
@@ -531,17 +559,8 @@
                                         <p style="white-space: pre-wrap;" th:text="${p.rejectionReason}"></p>
                                     </div>
 
-                                    <div th:id="'history-detail-' + ${p.id}" style="display:none;">
-                                        <div th:if="${p.actionType != null && p.actionType.startsWith('UPDATE_TRIWULAN')}">
-                                            <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Realisasi Pengendalian</h4>
-                                            <p th:text="${p.realisasiPengendalian}"></p>
-                                            
-                                            <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Skor Risiko Update</h4>
-                                            <p>Peluang: <span th:text="${p.peluangScore}"></span>, Dampak: <span th:text="${p.dampakScore}"></span></p>
-                                            <p>Total: <span th:text="${p.totalRiskScore}"></span> (Level: <span th:text="${p.riskLevel}"></span>)</p>
-                                        </div>
-                                        
-                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px; margin-top:20px;">Sasaran Unit Kerja</h4>
+                                    <div th:id="'history-risiko-' + ${p.id}" style="display:none;">
+                                        <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Sasaran Unit Kerja</h4>
                                         <p th:text="${p.sasaranUnitKerja}"></p>
                                         <a th:if="${p.sasaranUnitKerjaFile != null}" th:href="@{'/' + ${p.sasaranUnitKerjaFile}}" target="_blank" class="file-link">📎 Download File</a>
                                         
@@ -564,14 +583,26 @@
                                         <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Dampak</h4>
                                         <p th:text="${p.dampak}"></p>
                                         <a th:if="${p.dampakFile != null}" th:href="@{'/' + ${p.dampakFile}}" target="_blank" class="file-link">📎 Download File</a>
-                                        
-                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Existing Control</h4>
+                                    </div>
+                                    
+                                    <div th:id="'history-pengendalian-' + ${p.id}" style="display:none;">
+                                        <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Existing Control</h4>
                                         <p th:text="${p.existingControl}"></p>
-                                        <a th:if="${p.existingControlFile != null}" th:href="@{'/' + ${p.existingControlFile}}" target="_blank" class="file-link">📎 Download File</a>
                                         
                                         <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Rencana Pengendalian</h4>
                                         <p th:text="${p.rencanaPengendalian}"></p>
-                                        <a th:if="${p.rencanaPengendalianFile != null}" th:href="@{'/' + ${p.rencanaPengendalianFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                    </div>
+
+                                    <div th:id="'history-triwulan-' + ${p.id}" style="display:none;">
+                                        <h4 style="margin-top:0; color:var(--primary-blue); border-bottom:1px solid #ddd; padding-bottom:5px;">
+                                            Update Triwulan (Tahun <span th:text="${p.triwulanTahun != null ? p.triwulanTahun : '-'}"></span>, Ke-<span th:text="${#strings.substringAfter(p.actionType, 'UPDATE_TRIWULAN_')}"></span>)
+                                        </h4>
+                                        <h4 style="margin-top:10px; border-bottom:1px solid #ddd; padding-bottom:5px;">Realisasi Pengendalian</h4>
+                                        <p th:text="${p.realisasiPengendalian}"></p>
+                                        
+                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Skor Risiko Update</h4>
+                                        <p>Peluang: <span th:text="${p.peluangScore}"></span>, Dampak: <span th:text="${p.dampakScore}"></span></p>
+                                        <p>Total: <span th:text="${p.totalRiskScore}"></span> (Level: <span th:text="${p.riskLevel}"></span>)</p>
                                     </div>
                                 </td>
                             </tr>
@@ -638,7 +669,57 @@
         </div>
     </div>
 
+    <!-- Request Triwulan Modal -->
+    <div id="requestTriwulanModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:8px; width:90%; max-width:500px; position:relative; margin: 15vh auto;">
+            <span style="position:absolute; top:20px; right:30px; font-size:24px; cursor:pointer;" onclick="closeRequestTriwulanModal()">&times;</span>
+            <h3 style="margin-top:0; color:var(--primary-blue);">Minta Update Triwulan</h3>
+            <form th:action="@{/report/request-triwulan}" method="post">
+                <input type="hidden" name="id" id="requestTriwulanId">
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Tahun Proyek:</label>
+                    <select class="form-control" name="triwulanTahun" id="requestTriwulanTahun" required></select>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Triwulan Ke-:</label>
+                    <select class="form-control" name="triwulanKe" required>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                </div>
+                <div style="text-align:right;">
+                    <button type="button" class="btn-primary" style="background-color:#6c757d; margin-right:10px;" onclick="closeRequestTriwulanModal()">Batal</button>
+                    <button type="submit" class="btn-primary" style="background-color:var(--primary-yellow); color:#333;">Minta Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        function openRequestTriwulanModal(id, projectYear) {
+            document.getElementById('requestTriwulanId').value = id;
+            
+            const yearSelect = document.getElementById('requestTriwulanTahun');
+            yearSelect.innerHTML = ''; // Clear previous options
+            
+            const currentYear = new Date().getFullYear();
+            const startYear = projectYear && projectYear > 2020 ? projectYear : 2020;
+            
+            for (let year = currentYear; year >= startYear; year--) {
+                let option = document.createElement('option');
+                option.value = year;
+                option.text = year;
+                yearSelect.appendChild(option);
+            }
+            
+            document.getElementById('requestTriwulanModal').style.display = 'flex';
+        }
+
+        function closeRequestTriwulanModal() {
+            document.getElementById('requestTriwulanModal').style.display = 'none';
+        }
         function openRejectModal(id) {
             document.getElementById('rejectId').value = id;
             document.getElementById('rejectModal').style.display = 'flex';

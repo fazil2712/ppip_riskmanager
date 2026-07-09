@@ -19,6 +19,7 @@ public class PengendalianRisiko {
     private String riskLevel;
     
     private int triwulanKe;
+    private Integer triwulanTahun;
 
     // Approval Workflow Fields for Triwulan Update
     private String approvalStatus = "menunggu"; // menunggu, open, rejected
@@ -160,5 +161,13 @@ public class PengendalianRisiko {
 
     public void setRiskProject(RiskProject riskProject) {
         this.riskProject = riskProject;
+    }
+
+    public Integer getTriwulanTahun() {
+        return triwulanTahun;
+    }
+
+    public void setTriwulanTahun(Integer triwulanTahun) {
+        this.triwulanTahun = triwulanTahun;
     }
 }
