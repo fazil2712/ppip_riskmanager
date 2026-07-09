@@ -1,0 +1,1 @@
+2026-07-09T03:36:42  Startup Request, url: /api/publish?type=jar&restart=true&isAsync=true&trackDeploymentProgress=true, method: POST, type: request, pid: 833,1,5, ScmType: None

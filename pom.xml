@@ -40,7 +40,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc</artifactId>
+			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
 		<dependency>
@@ -84,7 +84,7 @@
 					<schemaVersion>v2</schemaVersion>
 					<resourceGroup>riskmanager-rg</resourceGroup>
 					<appName>riskmanager-fazil</appName>
-					<pricingTier>F1</pricingTier>
+					<pricingTier>B1</pricingTier>
 					<region>southeastasia</region>
 					<auth>
 						<type>azure_cli</type>
@@ -95,6 +95,10 @@
 						<webContainer>Java SE</webContainer>
 					</runtime>
 					<appSettings>
+						<property>
+							<name>WEBSITES_PORT</name>
+							<value>8080</value>
+						</property>
 						<property>
 							<name>DB_URL</name>
 							<value>jdbc:mysql://riskmanager-mysql.mysql.database.azure.com:3306/riskdb?useSSL=true&amp;requireSSL=false</value>
@@ -109,7 +113,7 @@
 						</property>
 						<property>
 							<name>SPRING_JPA_DATABASE_PLATFORM</name>
-							<value>org.hibernate.dialect.MySQL8Dialect</value>
+							<value>org.hibernate.dialect.MySQLDialect</value>
 						</property>
 						<property>
 							<name>SPRING_JPA_HIBERNATE_DDL_AUTO</name>
