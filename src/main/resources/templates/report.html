@@ -279,12 +279,7 @@
                         <tbody>
                             <tr th:each="p, iterStat : ${approvedProjects}">
                                 <td th:text="${iterStat.count}">1</td>
-                                <td>
-                                        <button type="button" th:if="${p.approvalStatus == 'open' && !p.updateTriwulanRequested}" 
-                                                class="btn-primary" style="padding: 5px; font-size: 11px; background-color: var(--primary-yellow); color: #333; width: 100%;" 
-                                                th:onclick="'openRequestTriwulanModal(' + ${p.id} + ', ' + ${p.tahun} + ')'">Minta Update Triwulan</button>
-                                        <span th:if="${p.updateTriwulanRequested}" style="font-size: 10px; color: var(--primary-yellow); font-weight: bold; text-align: center;">Update Diminta</span>
-                                </td>
+                                <td></td>
                                 <td th:text="${p.idRisiko}">RSK-001</td>
                                 <td th:text="${p.dibuatOleh}"></td>
                                 <td th:text="${p.unitKerja}"></td>
@@ -682,57 +677,9 @@
         </div>
     </div>
 
-    <!-- Request Triwulan Modal -->
-    <div id="requestTriwulanModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-        <div style="background:white; padding:30px; border-radius:8px; width:90%; max-width:500px; position:relative; margin: 15vh auto;">
-            <span style="position:absolute; top:20px; right:30px; font-size:24px; cursor:pointer;" onclick="closeRequestTriwulanModal()">&times;</span>
-            <h3 style="margin-top:0; color:var(--primary-blue);">Minta Update Triwulan</h3>
-            <form th:action="@{/report/request-triwulan}" method="post">
-                <input type="hidden" name="id" id="requestTriwulanId">
-                <div style="margin-bottom: 15px;">
-                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Tahun:</label>
-                    <select class="form-control" name="triwulanTahun" id="requestTriwulanTahun" required></select>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Triwulan Ke-:</label>
-                    <select class="form-control" name="triwulanKe" required>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                    </select>
-                </div>
-                <div style="text-align:right;">
-                    <button type="button" class="btn-primary" style="background-color:#6c757d; margin-right:10px;" onclick="closeRequestTriwulanModal()">Batal</button>
-                    <button type="submit" class="btn-primary" style="background-color:var(--primary-yellow); color:#333;">Minta Update</button>
-                </div>
-            </form>
-        </div>
     </div>
 
     <script>
-        function openRequestTriwulanModal(id, projectYear) {
-            document.getElementById('requestTriwulanId').value = id;
-            
-            const yearSelect = document.getElementById('requestTriwulanTahun');
-            yearSelect.innerHTML = ''; // Clear previous options
-            
-            const currentYear = new Date().getFullYear();
-            const startYear = projectYear && projectYear > 2020 ? projectYear : 2020;
-            
-            for (let year = currentYear; year >= startYear; year--) {
-                let option = document.createElement('option');
-                option.value = year;
-                option.text = year;
-                yearSelect.appendChild(option);
-            }
-            
-            document.getElementById('requestTriwulanModal').style.display = 'flex';
-        }
-
-        function closeRequestTriwulanModal() {
-            document.getElementById('requestTriwulanModal').style.display = 'none';
-        }
         function openRejectModal(id) {
             document.getElementById('rejectId').value = id;
             document.getElementById('rejectModal').style.display = 'flex';

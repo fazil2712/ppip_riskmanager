@@ -247,6 +247,65 @@
                 </table>
             </div>
             
+            <!-- Kelola Request Table -->
+            <div class="card">
+                <h3 style="margin-top:0;">Kelola Request & Deadline</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Badge ID</th>
+                            <th>Nama Risk Officer</th>
+                            <th>Departemen</th>
+                            <th>Identifikasi Deadline</th>
+                            <th>Triwulan Deadline</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="ro : ${riskOfficers}">
+                            <td th:text="${ro.badgeId}"></td>
+                            <td th:text="${ro.nama}"></td>
+                            <td th:text="${ro.departemen}"></td>
+                            <td>
+                                <div th:if="${ro.identifikasiDeadline != null}">
+                                    Deadline: <span th:text="${#temporals.format(ro.identifikasiDeadline, 'dd MMM yyyy HH:mm')}"></span>
+                                    <form th:action="@{/admin/cancel-deadline}" method="post" style="margin-top: 5px;" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan timer Identifikasi?');">
+                                        <input type="hidden" name="userId" th:value="${ro.id}">
+                                        <input type="hidden" name="type" value="identifikasi">
+                                        <button type="submit" class="btn-primary" style="background-color: #dc3545; padding: 4px 8px; font-size: 11px;">Cancel</button>
+                                    </form>
+                                </div>
+                                <div th:if="${ro.identifikasiDeadline == null}">
+                                    <span style="color:#6c757d; display:block; margin-bottom:5px;">Belum diatur</span>
+                                    <button type="button" class="btn-save" style="padding: 4px 8px; font-size: 11px;"
+                                            th:data-id="${ro.id}" 
+                                            th:data-nama="${ro.nama}"
+                                            th:data-type="identifikasi"
+                                            onclick="openDeadlineModal(this)">Set Deadline</button>
+                                </div>
+                            </td>
+                            <td>
+                                <div th:if="${ro.triwulanDeadline != null}">
+                                    Deadline: <span th:text="${#temporals.format(ro.triwulanDeadline, 'dd MMM yyyy HH:mm')}"></span>
+                                    <form th:action="@{/admin/cancel-deadline}" method="post" style="margin-top: 5px;" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan timer Triwulan?');">
+                                        <input type="hidden" name="userId" th:value="${ro.id}">
+                                        <input type="hidden" name="type" value="triwulan">
+                                        <button type="submit" class="btn-primary" style="background-color: #dc3545; padding: 4px 8px; font-size: 11px;">Cancel</button>
+                                    </form>
+                                </div>
+                                <div th:if="${ro.triwulanDeadline == null}">
+                                    <span style="color:#6c757d; display:block; margin-bottom:5px;">Belum diatur</span>
+                                    <button type="button" class="btn-save" style="padding: 4px 8px; font-size: 11px;"
+                                            th:data-id="${ro.id}" 
+                                            th:data-nama="${ro.nama}"
+                                            th:data-type="triwulan"
+                                            onclick="openDeadlineModal(this)">Set Deadline</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
             <!-- Project Table -->
             <div class="card">
                 <h3 style="margin-top:0;">Kelola Proyek Risiko</h3>
@@ -420,6 +479,35 @@
         </div>
     </div>
 
+    <!-- Deadline Modal -->
+    <div id="deadlineModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close" onclick="closeDeadlineModal()">&times;</span>
+            <h2 style="margin-top:0;">Set Deadline untuk <span id="deadline-nama"></span></h2>
+            <form th:action="@{/admin/set-deadline}" method="post">
+                <input type="hidden" id="deadline-userid" name="userId">
+                <input type="hidden" id="deadline-type" name="type">
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Deadline Untuk:</label>
+                    <div id="deadline-type-display" style="font-weight: bold; color: var(--primary-blue); background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd;"></div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Pilih Tanggal & Waktu:</label>
+                    <input type="datetime-local" class="form-control" name="deadline" required>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Catatan (Opsional):</label>
+                    <textarea class="form-control" name="catatan" rows="3" placeholder="Tambahkan catatan untuk Risk Officer..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn-save" style="width: 100%;">Set Deadline</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         function openEditModal(btn) {
             document.getElementById('edit-id').value = btn.getAttribute('data-id');
@@ -466,6 +554,21 @@
             if (event.target == document.getElementById('editProjectModal')) {
                 closeEditProjectModal();
             }
+            if (event.target == document.getElementById('deadlineModal')) {
+                closeDeadlineModal();
+            }
+        }
+        
+        function openDeadlineModal(btn) {
+            document.getElementById('deadline-userid').value = btn.getAttribute('data-id');
+            document.getElementById('deadline-nama').innerText = btn.getAttribute('data-nama');
+            const type = btn.getAttribute('data-type');
+            document.getElementById('deadline-type').value = type;
+            document.getElementById('deadline-type-display').innerText = type === 'identifikasi' ? 'Identifikasi Risiko' : 'Update Triwulan';
+            document.getElementById('deadlineModal').style.display = 'block';
+        }
+        function closeDeadlineModal() {
+            document.getElementById('deadlineModal').style.display = 'none';
         }
     </script>
 </body>

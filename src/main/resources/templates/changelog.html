@@ -78,6 +78,7 @@
         .badge-approve { background-color: #17a2b8; }
         .badge-reject { background-color: #343a40; }
         .badge-request { background-color: #6610f2; }
+        .badge-submit { background-color: #fd7e14; }
         
         .filter-container {
             display: flex;
@@ -201,6 +202,7 @@
                             <option value="APPROVE">APPROVE</option>
                             <option value="REJECT">REJECT</option>
                             <option value="REQUEST">REQUEST</option>
+                            <option value="SUBMIT">SUBMIT</option>
                         </select>
                     </div>
                     <div class="filter-group">
@@ -229,7 +231,8 @@
                                         #strings.containsIgnoreCase(log.actionType, 'EDIT') ? 'badge-edit' :
                                         #strings.containsIgnoreCase(log.actionType, 'APPROVE') ? 'badge-approve' :
                                         #strings.containsIgnoreCase(log.actionType, 'REJECT') ? 'badge-reject' :
-                                        #strings.containsIgnoreCase(log.actionType, 'REQUEST') ? 'badge-request' : ''}" 
+                                        #strings.containsIgnoreCase(log.actionType, 'REQUEST') ? 'badge-request' :
+                                        #strings.containsIgnoreCase(log.actionType, 'SUBMIT') ? 'badge-submit' : ''}" 
                                         class="badge-action" th:text="${log.actionType}"></span>
                                 </td>
                                 <td th:text="${log.description}"></td>

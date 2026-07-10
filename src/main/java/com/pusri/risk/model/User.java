@@ -26,6 +26,16 @@ public class User {
     private String fotoProfil;
     private String departemen;
 
+    private java.time.LocalDateTime identifikasiDeadline;
+    
+    @Column(columnDefinition = "TEXT")
+    private String identifikasiCatatan;
+    
+    private java.time.LocalDateTime triwulanDeadline;
+    
+    @Column(columnDefinition = "TEXT")
+    private String triwulanCatatan;
+
     public User() {}
 
     public Long getId() {
@@ -90,5 +100,37 @@ public class User {
 
     public void setDepartemen(String departemen) {
         this.departemen = departemen;
+    }
+
+    public java.time.LocalDateTime getIdentifikasiDeadline() {
+        return identifikasiDeadline;
+    }
+
+    public void setIdentifikasiDeadline(java.time.LocalDateTime identifikasiDeadline) {
+        this.identifikasiDeadline = identifikasiDeadline;
+    }
+
+    public String getIdentifikasiCatatan() {
+        return identifikasiCatatan;
+    }
+
+    public void setIdentifikasiCatatan(String identifikasiCatatan) {
+        this.identifikasiCatatan = identifikasiCatatan;
+    }
+
+    public java.time.LocalDateTime getTriwulanDeadline() {
+        return triwulanDeadline;
+    }
+
+    public void setTriwulanDeadline(java.time.LocalDateTime triwulanDeadline) {
+        this.triwulanDeadline = triwulanDeadline;
+    }
+
+    public String getTriwulanCatatan() {
+        return triwulanCatatan;
+    }
+
+    public void setTriwulanCatatan(String triwulanCatatan) {
+        this.triwulanCatatan = triwulanCatatan;
     }
 }

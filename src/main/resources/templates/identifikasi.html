@@ -93,10 +93,47 @@
             
             <div th:if="${successMessage}" style="color: white; background: #28a745; padding: 10px; border-radius: 6px; margin-bottom: 20px;" th:text="${successMessage}"></div>
 
-            <!-- Form Card -->
-            <div class="card">
-                <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Registrasi Risiko</h3>
-                <form th:action="@{/identifikasi/add}" method="post" enctype="multipart/form-data" onsubmit="return validateKonteks(this)">
+            <!-- Lock Check -->
+            <div th:if="${session.loggedInUser.identifikasiDeadline == null || session.loggedInUser.identifikasiDeadline.isBefore(T(java.time.LocalDateTime).now())}" style="background-color: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #f5c6cb;">
+                <h3 style="margin-top: 0;">🔒 Form Terkunci</h3>
+                <p style="margin-bottom: 0;">Tidak dapat mengisi identifikasi Risiko saat ini, hubungi admin untuk membuka kunci.</p>
+            </div>
+
+            <div th:if="${session.loggedInUser.identifikasiDeadline != null && session.loggedInUser.identifikasiDeadline.isAfter(T(java.time.LocalDateTime).now())}">
+                <!-- Timer Banner -->
+                <div style="background-color: #e2e3e5; color: #383d41; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d6d8db; text-align: center;">
+                    <div style="font-weight: bold; font-size: 16px; color: var(--primary-blue);" id="identifikasiTimerContainer">
+                        Waktu tersisa: <span id="identifikasiTimer">Menghitung...</span>, Deadline: <span th:text="${#temporals.format(session.loggedInUser.identifikasiDeadline, 'MMM dd, yyyy HH:mm')}"></span>
+                    </div>
+                    <div th:if="${session.loggedInUser.identifikasiCatatan != null && !session.loggedInUser.identifikasiCatatan.isEmpty()}" style="margin-top: 10px;">
+                        <a href="javascript:void(0)" onclick="document.getElementById('catatanAdmin').style.display='block'; this.style.display='none';" style="color: #dc3545; font-size: 13px; font-weight: bold; text-decoration: underline;">Lihat catatan admin</a>
+                        <div id="catatanAdmin" style="display: none; background: white; padding: 10px; border-radius: 4px; margin-top: 5px; border: 1px solid #dc3545; color: #dc3545; font-size: 13px; text-align: left;">
+                            <strong>Catatan Admin:</strong> <br>
+                            <span th:text="${session.loggedInUser.identifikasiCatatan}"></span>
+                        </div>
+                    </div>
+                    <script th:inline="javascript">
+                        var deadlineTime = new Date(/*[[${session.loggedInUser.identifikasiDeadline}]]*/).getTime();
+                        var x = setInterval(function() {
+                            var now = new Date().getTime();
+                            var distance = deadlineTime - now;
+                            if (distance < 0) {
+                                clearInterval(x);
+                                location.reload();
+                            } else {
+                                var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                document.getElementById("identifikasiTimer").innerHTML = days + " (Hari) : " + hours + " (Jam) : " + minutes + " (menit)";
+                            }
+                        }, 1000);
+                    </script>
+                </div>
+
+                <!-- Form Card -->
+                <div class="card">
+                    <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Registrasi Risiko</h3>
+                    <form th:action="@{/identifikasi/add}" method="post" enctype="multipart/form-data" onsubmit="return validateKonteks(this)">
                     <div class="form-group" style="max-width: 400px;">
                         <label>ID Risiko</label>
                         <div style="margin-bottom: 8px; font-size: 13px;">
@@ -325,8 +362,17 @@
                     </div>
                     
                     <button type="submit" class="btn-primary" style="margin-top: 15px; width:100%;">Simpan Data Risiko</button>
-                </form>
-            </div>
+                    </form>
+                    <script th:if="${isLocked}">
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const formElements = document.querySelectorAll('form input, form select, form textarea, form button');
+                            formElements.forEach(el => {
+                                if (el.type !== 'hidden') el.disabled = true;
+                            });
+                        });
+                    </script>
+                </div>
+            </div> <!-- Close lock wrapper -->
 
             <!-- Data Table Card -->
             <div class="card">

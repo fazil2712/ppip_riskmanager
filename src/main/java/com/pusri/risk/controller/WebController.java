@@ -142,7 +142,9 @@ public class WebController {
             return "redirect:/login";
         }
         
-        List<RiskProject> requestedProjects = riskProjectRepository.findByDibuatOlehAndUpdateTriwulanRequestedTrue(user.getNama());
+        List<RiskProject> requestedProjects = riskProjectRepository.findByDibuatOleh(user.getNama()).stream()
+            .filter(p -> !"Closed".equalsIgnoreCase(p.getStatus()))
+            .toList();
         model.addAttribute("requestedProjects", requestedProjects);
         
         if (!"Admin".equals(user.getRole()) && !"RiskOwner".equals(user.getRole())) {
@@ -334,6 +336,7 @@ public class WebController {
             riskProjectRepository.save(project);
             
             riskProjectHistoryRepository.save(new RiskProjectHistory(project, "EDIT_REVISION"));
+            systemLogService.logAction(user, "EDIT_PROJECT", "Edited Identifikasi Risiko: " + project.getIdRisiko());
             
             redirectAttributes.addFlashAttribute("successMessage", "Data Identifikasi Risiko berhasil diubah!");
         }
@@ -363,6 +366,7 @@ public class WebController {
             riskProjectRepository.save(project);
             
             riskProjectHistoryRepository.save(new RiskProjectHistory(project, "SUBMIT_IDENTIFIKASI"));
+            systemLogService.logAction(user, "SUBMIT_PROJECT", "Submitted Project for Approval: " + project.getIdRisiko());
             
             redirectAttributes.addFlashAttribute("successMessage", "Proyek berhasil di-submit untuk persetujuan!");
         }
@@ -437,6 +441,7 @@ public class WebController {
             }
             project.setNotifIdentifikasiRiskOfficer(true);
             riskProjectRepository.save(project);
+            systemLogService.logAction(user, "APPROVE_PROJECT", "Approved Project: " + project.getIdRisiko());
             
             List<RiskProjectHistory> histories = riskProjectHistoryRepository.findByProjectIdOrderByTimestampDesc(project.getId());
             if (!histories.isEmpty()) {
@@ -471,6 +476,7 @@ public class WebController {
             project.setNotifIdentifikasiRiskOfficer(true);
             
             riskProjectRepository.save(project);
+            systemLogService.logAction(user, "REJECT_PROJECT", "Rejected Project: " + project.getIdRisiko());
             
             List<RiskProjectHistory> histories = riskProjectHistoryRepository.findByProjectIdOrderByTimestampDesc(project.getId());
             if (!histories.isEmpty()) {
@@ -527,8 +533,76 @@ public class WebController {
                 .toList();
         model.addAttribute("riskOwners", riskOwners);
         
+        List<User> riskOfficers = userService.getAllUsers().stream()
+                .filter(u -> "RiskOfficer".equals(u.getRole()))
+                .toList();
+        model.addAttribute("riskOfficers", riskOfficers);
+        
         model.addAttribute("projects", riskProjectRepository.findAll());
         return "admin";
+    }
+
+    @PostMapping("/admin/set-deadline")
+    public String setDeadline(HttpSession session,
+                              @RequestParam("userId") Long userId,
+                              @RequestParam("type") String type,
+                              @RequestParam("deadline") String deadlineStr,
+                              @RequestParam(value = "catatan", required = false) String catatan,
+                              RedirectAttributes redirectAttributes) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"Admin".equals(loggedInUser.getRole())) {
+            return "redirect:/dashboard";
+        }
+        
+        try {
+            User targetUser = userService.findById(userId);
+            if (targetUser != null) {
+                java.time.LocalDateTime deadline = java.time.LocalDateTime.parse(deadlineStr);
+                if ("identifikasi".equalsIgnoreCase(type)) {
+                    targetUser.setIdentifikasiDeadline(deadline);
+                    targetUser.setIdentifikasiCatatan(catatan);
+                } else if ("triwulan".equalsIgnoreCase(type)) {
+                    targetUser.setTriwulanDeadline(deadline);
+                    targetUser.setTriwulanCatatan(catatan);
+                }
+                userService.updateUser(targetUser);
+                systemLogService.logAction(loggedInUser, "SET_DEADLINE", "Set deadline for " + targetUser.getNama() + " (" + type + ")");
+                redirectAttributes.addFlashAttribute("successMessage", "Deadline berhasil di-set.");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Format deadline tidak valid.");
+        }
+        return "redirect:/admin";
+    }
+    
+    @PostMapping("/admin/cancel-deadline")
+    public String cancelDeadline(HttpSession session,
+                                 @RequestParam("userId") Long userId,
+                                 @RequestParam("type") String type,
+                                 RedirectAttributes redirectAttributes) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"Admin".equals(loggedInUser.getRole())) {
+            return "redirect:/dashboard";
+        }
+        
+        try {
+            User targetUser = userService.findById(userId);
+            if (targetUser != null) {
+                if ("identifikasi".equalsIgnoreCase(type)) {
+                    targetUser.setIdentifikasiDeadline(null);
+                    targetUser.setIdentifikasiCatatan(null);
+                } else if ("triwulan".equalsIgnoreCase(type)) {
+                    targetUser.setTriwulanDeadline(null);
+                    targetUser.setTriwulanCatatan(null);
+                }
+                userService.updateUser(targetUser);
+                systemLogService.logAction(loggedInUser, "CANCEL_DEADLINE", "Canceled deadline for " + targetUser.getNama() + " (" + type + ")");
+                redirectAttributes.addFlashAttribute("successMessage", "Deadline berhasil dibatalkan.");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Terjadi kesalahan saat membatalkan deadline.");
+        }
+        return "redirect:/admin";
     }
     
     @PostMapping("/admin/project/edit")
@@ -734,6 +808,7 @@ public class WebController {
             project.setRequestedTriwulanTahun(triwulanTahun);
             project.setNotifPengendalianRiskOfficer(true);
             riskProjectRepository.save(project);
+            systemLogService.logAction(user, "REQUEST_TRIWULAN", "Requested Triwulan Update for Project: " + project.getIdRisiko());
             redirectAttributes.addFlashAttribute("successMessage", "Permintaan update triwulan berhasil dikirim ke Risk Officer.");
         }
         return "redirect:/report";
@@ -742,6 +817,8 @@ public class WebController {
     @PostMapping("/pengendalian/submit-triwulan")
     public String submitTriwulan(HttpSession session, 
                                  @RequestParam("projectId") Long projectId,
+                                 @RequestParam("triwulanKe") Integer triwulanKe,
+                                 @RequestParam("triwulanTahun") Integer triwulanTahun,
                                  @RequestParam("realisasiPengendalian") String realisasiPengendalian,
                                  @RequestParam("peluangScore") Integer peluangScore,
                                  @RequestParam("dampakScore") Integer dampakScore,
@@ -750,7 +827,7 @@ public class WebController {
         if (user == null || !"RiskOfficer".equals(user.getRole())) return "redirect:/login";
 
         RiskProject project = riskProjectRepository.findById(projectId).orElse(null);
-        if (project != null && project.isUpdateTriwulanRequested()) {
+        if (project != null) {
             if (!user.getNama().equals(project.getDibuatOleh())) {
                 redirectAttributes.addFlashAttribute("error", "Anda tidak memiliki akses untuk submit update proyek ini.");
                 return "redirect:/pengendalian";
@@ -760,8 +837,8 @@ public class WebController {
             pr.setPeluangScore(peluangScore);
             pr.setDampakScore(dampakScore);
             pr.calculateRiskMatrix();
-            pr.setTriwulanKe(project.getRequestedTriwulanKe() != null ? project.getRequestedTriwulanKe() : (project.getPengendalianRisikoList().size() + 1));
-            pr.setTriwulanTahun(project.getRequestedTriwulanTahun() != null ? project.getRequestedTriwulanTahun() : project.getTahun());
+            pr.setTriwulanKe(triwulanKe);
+            pr.setTriwulanTahun(triwulanTahun);
             pr.setRiskProject(project);
             pr.setApprovalStatus("menunggu");
             pr.setAdminApproval("pending");
@@ -777,6 +854,7 @@ public class WebController {
             riskProjectRepository.save(project);
             
             riskProjectHistoryRepository.save(new RiskProjectHistory(project, pr, "UPDATE_TRIWULAN_" + pr.getTriwulanKe()));
+            systemLogService.logAction(user, "SUBMIT_TRIWULAN", "Submitted Triwulan Update for Project: " + project.getIdRisiko());
             
             redirectAttributes.addFlashAttribute("successMessage", "Update Triwulan berhasil di-submit untuk persetujuan!");
         }
@@ -812,6 +890,7 @@ public class WebController {
             RiskProject projectToNotify = pr.getRiskProject();
             projectToNotify.setNotifPengendalianRiskOfficer(true);
             riskProjectRepository.save(projectToNotify);
+            systemLogService.logAction(user, "APPROVE_TRIWULAN", "Approved Triwulan Update for Project: " + projectToNotify.getIdRisiko());
             
             List<RiskProjectHistory> histories = riskProjectHistoryRepository.findByProjectIdOrderByTimestampDesc(pr.getRiskProject().getId());
             if (!histories.isEmpty()) {
@@ -849,6 +928,7 @@ public class WebController {
             RiskProject projectToNotify = pr.getRiskProject();
             projectToNotify.setNotifPengendalianRiskOfficer(true);
             riskProjectRepository.save(projectToNotify);
+            systemLogService.logAction(user, "REJECT_TRIWULAN", "Rejected Triwulan Update for Project: " + projectToNotify.getIdRisiko() + " (Reason: " + reason + ")");
             
             List<RiskProjectHistory> histories = riskProjectHistoryRepository.findByProjectIdOrderByTimestampDesc(pr.getRiskProject().getId());
             if (!histories.isEmpty()) {

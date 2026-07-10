@@ -137,8 +137,45 @@
             </div>
 
             <div class="card" style="margin-top: 20px;">
-                <h3>Permintaan Update Triwulan</h3>
-                <div style="overflow-x: auto;">
+                <!-- Lock Check -->
+                <div th:if="${session.loggedInUser.triwulanDeadline == null || session.loggedInUser.triwulanDeadline.isBefore(T(java.time.LocalDateTime).now())}" style="background-color: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #f5c6cb;">
+                    <h3 style="margin-top: 0;">🔒 Form Terkunci</h3>
+                    <p style="margin-bottom: 0;">Tidak dapat mengisi Update Triwulan saat ini, hubungi admin untuk membuka kunci.</p>
+                </div>
+
+                <div th:if="${session.loggedInUser.triwulanDeadline != null && session.loggedInUser.triwulanDeadline.isAfter(T(java.time.LocalDateTime).now())}">
+                    <!-- Timer Banner -->
+                    <div style="background-color: #e2e3e5; color: #383d41; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d6d8db; text-align: center;">
+                        <div style="font-weight: bold; font-size: 16px; color: var(--primary-blue);" id="triwulanTimerContainer">
+                            Waktu tersisa: <span id="triwulanTimer">Menghitung...</span>, Deadline: <span th:text="${#temporals.format(session.loggedInUser.triwulanDeadline, 'MMM dd, yyyy HH:mm')}"></span>
+                        </div>
+                        <div th:if="${session.loggedInUser.triwulanCatatan != null && !session.loggedInUser.triwulanCatatan.isEmpty()}" style="margin-top: 10px;">
+                            <a href="javascript:void(0)" onclick="document.getElementById('catatanAdminTriwulan').style.display='block'; this.style.display='none';" style="color: #dc3545; font-size: 13px; font-weight: bold; text-decoration: underline;">Lihat catatan admin</a>
+                            <div id="catatanAdminTriwulan" style="display: none; background: white; padding: 10px; border-radius: 4px; margin-top: 5px; border: 1px solid #dc3545; color: #dc3545; font-size: 13px; text-align: left;">
+                                <strong>Catatan Admin:</strong> <br>
+                                <span th:text="${session.loggedInUser.triwulanCatatan}"></span>
+                            </div>
+                        </div>
+                        <script th:inline="javascript">
+                            var tDeadlineTime = new Date(/*[[${session.loggedInUser.triwulanDeadline}]]*/).getTime();
+                            var tTimer = setInterval(function() {
+                                var now = new Date().getTime();
+                                var distance = tDeadlineTime - now;
+                                if (distance < 0) {
+                                    clearInterval(tTimer);
+                                    location.reload();
+                                } else {
+                                    var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                    var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                    document.getElementById("triwulanTimer").innerHTML = days + " (Hari) : " + hours + " (Jam) : " + minutes + " (menit)";
+                                }
+                            }, 1000);
+                        </script>
+                    </div>
+
+                    <h3>Daftar Proyek Risiko (Pilih untuk Update Triwulan)</h3>
+                    <div style="overflow-x: auto;">
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -158,7 +195,7 @@
                                         <button class="btn-info" style="padding: 5px 10px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
                                                 th:onclick="'openDetailModal(\'detail-risiko-' + ${p.id} + '\', \'Detail Project\')'">Detail</button>
                                         <button class="btn-primary" style="padding: 5px 10px; font-size: 11px;" 
-                                                th:onclick="'openTriwulanModal(' + ${p.id} + ', ' + ${p.requestedTriwulanKe} + ', ' + ${p.requestedTriwulanTahun} + ')'">Isi Triwulan</button>
+                                                th:onclick="'openTriwulanModal(' + ${p.id} + ')'">Isi Triwulan</button>
                                     </div>
                                     
                                     <!-- Hidden Detail Content -->
@@ -203,6 +240,7 @@
                         </tbody>
                     </table>
                 </div>
+                </div> <!-- Close lock wrapper -->
             </div>
         </div>
     </div>
@@ -216,8 +254,20 @@
             <form th:action="@{/pengendalian/submit-triwulan}" method="post">
                 <input type="hidden" id="triwulanProjectId" name="projectId">
                 
-                <div style="background: #e9ecef; padding: 10px; border-radius: 4px; margin-top: 15px; font-weight: bold; color: var(--primary-blue);">
-                    Sedang Update: Triwulan Ke-<span id="displayTriwulanKe"></span> (Tahun <span id="displayTriwulanTahun"></span>)
+                <div style="display: flex; gap: 15px; margin-top: 15px;">
+                    <div style="flex: 1;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Tahun:</label>
+                        <select class="form-control" name="triwulanTahun" id="triwulanTahunSelect" required></select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Triwulan Ke-:</label>
+                        <select class="form-control" name="triwulanKe" required>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div style="margin-top: 15px; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background: #fafafa;">
@@ -287,10 +337,19 @@
     </div>
 
     <script>
-        function openTriwulanModal(projectId, triwulanKe, triwulanTahun) {
+        document.addEventListener('DOMContentLoaded', function() {
+            const yearSelect = document.getElementById('triwulanTahunSelect');
+            const currentYear = new Date().getFullYear();
+            for (let year = currentYear; year >= 2020; year--) {
+                let option = document.createElement('option');
+                option.value = year;
+                option.text = year;
+                yearSelect.appendChild(option);
+            }
+        });
+
+        function openTriwulanModal(projectId) {
             document.getElementById('triwulanProjectId').value = projectId;
-            document.getElementById('displayTriwulanKe').innerText = triwulanKe || '-';
-            document.getElementById('displayTriwulanTahun').innerText = triwulanTahun || '-';
             document.getElementById('triwulanModal').style.display = 'flex';
             document.getElementById('peluangScore').value = '';
             document.getElementById('dampakScore').value = '';
