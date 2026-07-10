@@ -69,8 +69,8 @@ public class WebController {
     }
 
     @PostMapping("/login")
-    public String loginSubmit(@RequestParam String loginId, @RequestParam String password, HttpSession session, RedirectAttributes redirectAttributes) {
-        User user = userService.authenticate(loginId, password);
+    public String loginSubmit(@RequestParam String loginId, @RequestParam String password, @RequestParam String role, HttpSession session, RedirectAttributes redirectAttributes) {
+        User user = userService.authenticate(loginId, password, role);
         if (user != null) {
             session.setAttribute("loggedInUser", user);
             return "redirect:/dashboard";
@@ -334,6 +334,10 @@ public class WebController {
         
         RiskProject project = riskProjectRepository.findById(id).orElse(null);
         if (project != null && ("tersimpan".equals(project.getApprovalStatus()) || "rejected".equals(project.getApprovalStatus()))) {
+            if (!"Admin".equals(user.getRole()) && !"CORPORATE RISK OFFICER".equals(user.getRole()) && !user.getNama().equals(project.getDibuatOleh())) {
+                redirectAttributes.addFlashAttribute("error", "Anda tidak memiliki akses untuk submit proyek ini.");
+                return "redirect:/identifikasi";
+            }
             project.setApprovalStatus("menunggu");
             project.setAdminApproval("pending");
             project.setRiskOwnerApproval("pending");
@@ -699,6 +703,10 @@ public class WebController {
 
         RiskProject project = riskProjectRepository.findById(projectId).orElse(null);
         if (project != null && project.isUpdateTriwulanRequested()) {
+            if (!user.getNama().equals(project.getDibuatOleh())) {
+                redirectAttributes.addFlashAttribute("error", "Anda tidak memiliki akses untuk submit update proyek ini.");
+                return "redirect:/pengendalian";
+            }
             PengendalianRisiko pr = new PengendalianRisiko();
             pr.setRealisasiPengendalian(realisasiPengendalian);
             pr.setPeluangScore(peluangScore);

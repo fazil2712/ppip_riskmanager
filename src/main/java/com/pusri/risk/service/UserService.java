@@ -17,12 +17,12 @@ public class UserService {
         return userRepository.findAll();
     }
     
-    public User authenticate(String loginId, String password) {
+    public User authenticate(String loginId, String password, String role) {
         User user = userRepository.findByBadgeId(loginId);
         if (user == null) {
             user = userRepository.findFirstByNama(loginId);
         }
-        if (user != null && user.getPassword().equals(password)) {
+        if (user != null && user.getPassword().equals(password) && user.getRole().equals(role)) {
             return user;
         }
         return null;

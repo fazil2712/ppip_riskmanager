@@ -82,7 +82,7 @@
 
             <!-- Form Card -->
             <div class="card">
-                <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Input Data Awal Proyek</h3>
+                <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Registrasi Risiko</h3>
                 <form th:action="@{/identifikasi/add}" method="post" enctype="multipart/form-data" onsubmit="return validateKonteks(this)">
                     <div class="form-group" style="max-width: 400px;">
                         <label>ID Risiko</label>
@@ -102,12 +102,12 @@
                         </div>
                         
                         <input type="text" class="form-control" name="idRisiko" id="finalIdRisiko" required placeholder="Contoh: RSK-015">
-                        <small style="color:var(--text-muted); display:block; margin-top:5px;">Gunakan ID baru jika proyek ini belum memiliki awalan. Pilih lanjut ID lama untuk membuat seri otomatis (misal: RTM-01 -> RTM-02).</small>
+                        <small style="color:var(--text-muted); display:block; margin-top:5px;">Gunakan ID baru jika Risiko ini belum memiliki awalan. Pilih lanjut ID lama untuk membuat seri otomatis (misal: RTM-01 -> RTM-02).</small>
                     </div>
 
                     <div style="display: flex; gap: 15px; max-width: 400px; margin-bottom: 15px;">
                         <div style="flex: 1;">
-                            <label>Tahun Proyek</label>
+                            <label>Tahun</label>
                             <select class="form-control" name="tahun" id="tahunSelect" required>
                                 <!-- Script will populate years from 2020 to current year -->
                             </select>
@@ -310,7 +310,7 @@
 
                     </div>
                     
-                    <button type="submit" class="btn-primary" style="margin-top: 15px; width:100%;">Simpan Data Proyek</button>
+                    <button type="submit" class="btn-primary" style="margin-top: 15px; width:100%;">Simpan Data Risiko</button>
                 </form>
             </div>
 
@@ -467,7 +467,7 @@
                 </div>
                 <div style="display: flex; gap: 15px; max-width: 300px; margin-bottom: 15px;">
                     <div style="flex: 1;">
-                        <label>Tahun Proyek</label>
+                        <label>Tahun</label>
                         <select class="form-control" name="tahun" id="editTahunSelect" required>
                             <!-- Script will populate years -->
                         </select>
