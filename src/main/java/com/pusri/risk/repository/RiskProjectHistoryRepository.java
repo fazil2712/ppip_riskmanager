@@ -13,4 +13,7 @@ public interface RiskProjectHistoryRepository extends JpaRepository<RiskProjectH
     // Custom query to fetch histories based on user role and project owner
     List<RiskProjectHistory> findByDibuatOlehOrderByTimestampDesc(String dibuatOleh);
     List<RiskProjectHistory> findByRiskOwnerOrderByTimestampDesc(String riskOwner);
+
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByProjectId(Long projectId);
 }

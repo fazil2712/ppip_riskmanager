@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>PORTAL RISIKO - System Changelog</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <style>
+        .layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .profile-section {
+            padding: 0 20px 20px 20px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .menu-item {
+            padding: 12px 20px; color: var(--text-muted); text-decoration: none; display: block; font-weight: 500;
+        }
+        .menu-item:hover, .menu-item.active { background: #f8f9fa; color: var(--primary-blue); border-left: 4px solid var(--primary-yellow); }
+        .main-content { flex: 1; padding: 20px 40px; background: white; }
+        
+        .card {
+            border: 1px solid #eee;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            background: #fdfdfd;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: var(--primary-blue);
+        }
+        .badge-action {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+            background-color: #6c757d;
+        }
+        .badge-create { background-color: #28a745; }
+        .badge-delete { background-color: #dc3545; }
+        .badge-edit { background-color: #ffc107; color: #333; }
+        .badge-approve { background-color: #17a2b8; }
+        .badge-reject { background-color: #343a40; }
+        .badge-request { background-color: #6610f2; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <div class="sidebar">
+            <div style="padding: 0 20px 20px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; margin-bottom: 20px;">
+                <img th:src="@{/img/logo.png}" alt="Logo" style="width: 40px; height: auto;">
+                <div style="font-weight: 700; color: var(--primary-blue); font-size: 14px; line-height: 1.2;">
+                    Dana Pensiun<br>PPIP-PUSRI
+                </div>
+            </div>
+            <div class="profile-section">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: #ddd; display: flex; justify-content: center; align-items: center; overflow: hidden; flex-shrink: 0;">
+                    <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/uploads/' + ${session.loggedInUser.fotoProfil}}" style="width:100%; height:100%; object-fit:cover;">
+                    <span th:unless="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" style="color:#888; font-size:24px;">👤</span>
+                </div>
+                <div>
+                    <div style="font-size:12px; color:var(--text-muted);">Selamat datang</div>
+                    <div style="font-weight:600; font-size:14px; margin-top:2px; color:var(--primary-blue);" th:text="${session.loggedInUser != null ? session.loggedInUser.nama : 'Unknown User'}"></div>
+                    <div style="font-weight:600; font-size:13px; color:var(--text-muted);" th:text="${session.loggedInUser != null ? '(' + session.loggedInUser.badgeId + ')' : '(Guest)'}"></div>
+                </div>
+            </div>
+            <div style="padding: 0 20px 20px 20px; border-bottom: 1px solid #eee;">
+                <small style="color:var(--text-muted)" th:text="${session.loggedInUser != null ? session.loggedInUser.departemen : 'Unknown Dept'}"></small><br>
+                <small style="color:var(--primary-yellow); font-weight:bold;">Role: <span th:text="${session.loggedInUser != null ? session.loggedInUser.role : 'None'}"></span></small>
+            </div>
+            <a th:href="@{/dashboard}" class="menu-item">Dashboard</a>
+            <div style="padding: 12px 20px; font-weight:600; color:#333;">RISIKO</div>
+            
+            <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin}" class="menu-item" style="padding-left: 40px; color: #dc3545;">
+                ⚙️ Admin Panel
+            </a>
+            
+            <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin/changelog}" class="menu-item active" style="padding-left: 40px; color: #dc3545;">
+                📜 System Changelog
+            </a>
+
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/identifikasi}" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
+            <a th:href="@{/report}" class="menu-item" style="padding-left: 40px;">Report</a>
+            
+            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;" onclick="return confirm('Apakah Anda yakin ingin log out?');">Log Out</a>
+        </div>
+        
+        <div class="main-content">
+            <h2 style="color: var(--primary-blue); margin-top: 0;">System Changelog</h2>
+            
+            <div class="card">
+                <h3>Log Aktivitas Sistem</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>User (Badge ID)</th>
+                                <th>Aksi</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="log : ${logs}">
+                                <td th:text="${#temporals.format(log.timestamp, 'dd MMM yyyy HH:mm:ss')}"></td>
+                                <td th:text="${log.actor}"></td>
+                                <td>
+                                    <span th:classappend="${
+                                        #strings.containsIgnoreCase(log.actionType, 'CREATE') ? 'badge-create' :
+                                        #strings.containsIgnoreCase(log.actionType, 'DELETE') ? 'badge-delete' :
+                                        #strings.containsIgnoreCase(log.actionType, 'EDIT') ? 'badge-edit' :
+                                        #strings.containsIgnoreCase(log.actionType, 'APPROVE') ? 'badge-approve' :
+                                        #strings.containsIgnoreCase(log.actionType, 'REJECT') ? 'badge-reject' :
+                                        #strings.containsIgnoreCase(log.actionType, 'REQUEST') ? 'badge-request' : ''}" 
+                                        class="badge-action" th:text="${log.actionType}"></span>
+                                </td>
+                                <td th:text="${log.description}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>

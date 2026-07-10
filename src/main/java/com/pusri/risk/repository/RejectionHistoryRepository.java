@@ -9,4 +9,7 @@ import java.util.List;
 @Repository
 public interface RejectionHistoryRepository extends JpaRepository<RejectionHistory, Long> {
     List<RejectionHistory> findByRiskProjectIdOrderByRejectedAtDesc(Long riskProjectId);
+
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByRiskProjectId(Long riskProjectId);
 }

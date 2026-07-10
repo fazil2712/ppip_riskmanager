@@ -11,4 +11,7 @@ public interface PengendalianRisikoRepository extends JpaRepository<Pengendalian
     List<PengendalianRisiko> findByRiskProjectRiskOwnerAndApprovalStatus(String riskOwner, String approvalStatus);
     List<PengendalianRisiko> findByRiskProjectDibuatOlehAndApprovalStatusNot(String dibuatOleh, String approvalStatus);
     List<PengendalianRisiko> findByRiskProjectDibuatOlehAndApprovalStatus(String dibuatOleh, String approvalStatus);
+
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByRiskProjectId(Long riskProjectId);
 }

@@ -55,6 +55,10 @@
             <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin}" class="menu-item" style="padding-left: 40px; color: #dc3545;">
                 ⚙️ Admin Panel
             </a>
+
+            <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin/changelog}" class="menu-item" style="padding-left: 40px; color: #dc3545;">
+                📜 System Changelog
+            </a>
             <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/identifikasi}" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
             <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
             <a th:href="@{/report}" class="menu-item active" style="padding-left: 40px;">Report</a>

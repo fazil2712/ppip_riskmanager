@@ -49,6 +49,9 @@ public class WebController {
     
     @Autowired
     private RiskProjectHistoryRepository riskProjectHistoryRepository;
+
+    @Autowired
+    private com.pusri.risk.service.SystemLogService systemLogService;
     
     private final String UPLOAD_DIR = "uploads/";
 
@@ -549,6 +552,7 @@ public class WebController {
                 p.calculateRiskLevels();
                 
                 riskProjectRepository.save(p);
+                systemLogService.logAction(loggedInUser, "EDIT_PROJECT", "Admin edited Risiko: " + p.getIdRisiko());
                 redirectAttributes.addFlashAttribute("successMessage", "Project updated successfully!");
             }
         } catch (Exception e) {
@@ -565,7 +569,11 @@ public class WebController {
         }
         
         try {
+            riskProjectHistoryRepository.deleteByProjectId(id);
+            pengendalianRisikoRepository.deleteByRiskProjectId(id);
+            rejectionHistoryRepository.deleteByRiskProjectId(id);
             riskProjectRepository.deleteById(id);
+            systemLogService.logAction(loggedInUser, "DELETE_PROJECT", "Deleted Project DB ID: " + id);
             redirectAttributes.addFlashAttribute("successMessage", "Project deleted successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error deleting project.");
@@ -592,6 +600,7 @@ public class WebController {
             }
             
             userService.registerAccount(newUser);
+            systemLogService.logAction(loggedInUser, "CREATE_USER", "Created User: " + newUser.getNama() + " (" + newUser.getBadgeId() + ")");
             redirectAttributes.addFlashAttribute("successMessage", "Account created successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error creating account. Ensure email and badge ID are unique.");
@@ -634,6 +643,7 @@ public class WebController {
                 }
                 
                 userService.updateUser(existingUser);
+                systemLogService.logAction(loggedInUser, "EDIT_USER", "Edited User: " + existingUser.getNama() + " (" + existingUser.getBadgeId() + ")");
                 redirectAttributes.addFlashAttribute("successMessage", "Account updated successfully!");
                 
                 // If editing self, update session
@@ -660,6 +670,10 @@ public class WebController {
                 return "redirect:/admin";
             }
             
+            com.pusri.risk.model.User userToDelete = userService.findById(id);
+            if (userToDelete != null) {
+                systemLogService.logAction(loggedInUser, "DELETE_USER", "Deleted User: " + userToDelete.getNama() + " (" + userToDelete.getBadgeId() + ")");
+            }
             userService.deleteUser(id);
             redirectAttributes.addFlashAttribute("successMessage", "Account deleted successfully!");
         } catch (Exception e) {
@@ -821,7 +835,17 @@ public class WebController {
 
     @GetMapping("/logout-success")
     public String logoutSuccess() {
-        return "logout-success";
+        return "redirect:/login";
+    }
+
+    @org.springframework.web.bind.annotation.GetMapping("/admin/changelog")
+    public String changelogPage(jakarta.servlet.http.HttpSession session, org.springframework.ui.Model model) {
+        com.pusri.risk.model.User loggedInUser = (com.pusri.risk.model.User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"Admin".equals(loggedInUser.getRole())) {
+            return "redirect:/dashboard";
+        }
+        model.addAttribute("logs", systemLogService.getAllLogs());
+        return "changelog";
     }
 
     @GetMapping("/debug")

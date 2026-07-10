@@ -67,6 +67,10 @@
             <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin}" class="menu-item" style="padding-left: 40px; color: #dc3545;">
                 ⚙️ Admin Panel
             </a>
+
+            <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin/changelog}" class="menu-item" style="padding-left: 40px; color: #dc3545;">
+                📜 System Changelog
+            </a>
             <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/identifikasi}" class="menu-item active" style="padding-left: 40px;">Identifikasi Risiko</a>
             <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
             <a th:href="@{/report}" class="menu-item" style="padding-left: 40px;">Report</a>
@@ -341,7 +345,23 @@
                             <td th:text="${iterStat.count}">1</td>
                             <td>
                                 <button type="button" th:if="${p.approvalStatus == 'tersimpan' || p.approvalStatus == 'rejected'}" class="btn-primary" style="padding: 5px 10px; font-size: 12px; margin-bottom: 5px;" 
-                                    th:onclick="editProject([[${p.id}]], [[${p.idRisiko}]], [[${p.sasaranUnitKerja}]], [[${p.konteksEksternal}]], [[${p.konteksInternal}]], [[${p.risiko}]], [[${p.kategoriRisiko}]], [[${p.penyebab}]], [[${p.dampak}]], [[${p.existingControl}]], [[${p.rencanaPengendalian}]], [[${p.peluangScore}]], [[${p.dampakScore}]], [[${p.riskOwner}]], [[${p.tahun}]], [[${p.kuartal}]])">Edit</button>
+                                    th:data-id="${p.id}"
+                                    th:data-idrisiko="${p.idRisiko}"
+                                    th:data-sasaran="${p.sasaranUnitKerja}"
+                                    th:data-eksternal="${p.konteksEksternal}"
+                                    th:data-internal="${p.konteksInternal}"
+                                    th:data-risiko="${p.risiko}"
+                                    th:data-kategori="${p.kategoriRisiko}"
+                                    th:data-penyebab="${p.penyebab}"
+                                    th:data-dampak="${p.dampak}"
+                                    th:data-existing="${p.existingControl}"
+                                    th:data-rencana="${p.rencanaPengendalian}"
+                                    th:data-peluang="${p.peluangScore}"
+                                    th:data-dampakscore="${p.dampakScore}"
+                                    th:data-riskowner="${p.riskOwner}"
+                                    th:data-tahun="${p.tahun}"
+                                    th:data-kuartal="${p.kuartal}"
+                                    onclick="openEditModalFromData(this)">Edit</button>
                                 
                                 <form th:if="${p.approvalStatus == 'tersimpan' || p.approvalStatus == 'rejected'}" th:action="@{'/identifikasi/submit/' + ${p.id}}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin mensubmit data ini untuk approval?');">
                                     <button type="submit" class="btn-primary" style="padding: 5px 10px; font-size: 12px; background-color: #28a745; width: 100%;">Submit</button>
@@ -736,6 +756,27 @@
             }
         }
 
+        function openEditModalFromData(btn) {
+            editProject(
+                btn.getAttribute('data-id'),
+                btn.getAttribute('data-idrisiko'),
+                btn.getAttribute('data-sasaran'),
+                btn.getAttribute('data-eksternal'),
+                btn.getAttribute('data-internal'),
+                btn.getAttribute('data-risiko'),
+                btn.getAttribute('data-kategori'),
+                btn.getAttribute('data-penyebab'),
+                btn.getAttribute('data-dampak'),
+                btn.getAttribute('data-existing'),
+                btn.getAttribute('data-rencana'),
+                btn.getAttribute('data-peluang'),
+                btn.getAttribute('data-dampakscore'),
+                btn.getAttribute('data-riskowner'),
+                btn.getAttribute('data-tahun'),
+                btn.getAttribute('data-kuartal')
+            );
+        }
+
         function editProject(id, idRisiko, sasaran, eksternal, internal, risiko, kategoriRisiko, penyebab, dampak, existingControl, rencanaPengendalian, peluangScore, dampakScore, riskOwner, tahun, kuartal) {
             document.getElementById("editId").value = id;
             document.getElementById("editIdRisiko").value = idRisiko;
@@ -758,8 +799,17 @@
         }
 
         function calcRisk(prefix) {
-            const pVal = parseInt(document.getElementById('peluangScore' + prefix).value);
-            const dVal = parseInt(document.getElementById('dampakScore' + prefix).value);
+            const pId = prefix === 'Edit' ? 'editPeluangScore' : 'peluangScore' + prefix;
+            const dId = prefix === 'Edit' ? 'editDampakScore' : 'dampakScore' + prefix;
+            
+            const pElem = document.getElementById(pId);
+            const dElem = document.getElementById(dId);
+            
+            if (!pElem || !dElem) return;
+            
+            const pVal = parseInt(pElem.value);
+            const dVal = parseInt(dElem.value);
+            
             const skorDisplay = document.getElementById('skorDisplay' + prefix);
             const levelDisplay = document.getElementById('levelDisplay' + prefix);
             
