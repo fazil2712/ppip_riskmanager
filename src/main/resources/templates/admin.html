@@ -140,9 +140,18 @@
                 📜 System Changelog
             </a>
 
-            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/identifikasi}" class="menu-item" style="padding-left: 40px;">Identifikasi Risiko</a>
-            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
-            <a th:href="@{/report}" class="menu-item" style="padding-left: 40px;">Report</a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/identifikasi}" class="menu-item" style="padding-left: 40px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Identifikasi Risiko</span>
+                <span th:if="${hasIdentifikasiNotif}" style="background-color: red; color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold;">!</span>
+            </a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Pengendalian Risiko</span>
+                <span th:if="${hasPengendalianNotif}" style="background-color: red; color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold;">!</span>
+            </a>
+            <a th:href="@{/report}" class="menu-item" style="padding-left: 40px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Report</span>
+                <span th:if="${hasReportNotif}" style="background-color: red; color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold;">!</span>
+            </a>
             
             <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;" onclick="return confirm('Apakah Anda yakin ingin log out?');">Log Out</a>
         </div>
@@ -260,9 +269,12 @@
                             <td th:text="${p.riskOwner}"></td>
                             <td th:text="${p.tahun + ' / ' + p.kuartal}"></td>
                             <td>
-                                <strong th:if="${p.riskLevel == 'HIGH'}" style="color: #dc3545;">HIGH</strong>
-                                <strong th:if="${p.riskLevel == 'MEDIUM'}" style="color: #ffc107;">MEDIUM</strong>
-                                <strong th:if="${p.riskLevel == 'LOW'}" style="color: #28a745;">LOW</strong>
+                                <strong th:if="${p.riskLevel == 'High'}" style="color: #dc3545;">High</strong>
+                                <strong th:if="${p.riskLevel == 'Moderate to High'}" style="color: #fd7e14;">Moderate to High</strong>
+                                <strong th:if="${p.riskLevel == 'Moderate'}" style="color: #ffc107;">Moderate</strong>
+                                <strong th:if="${p.riskLevel == 'Low to Moderate'}" style="color: #17a2b8;">Low to Moderate</strong>
+                                <strong th:if="${p.riskLevel == 'Low'}" style="color: #28a745;">Low</strong>
+                                <strong th:if="${p.riskLevel == null || p.riskLevel == 'UNKNOWN'}" style="color: #6c757d;">-</strong>
                             </td>
                             <td th:text="${p.status}"></td>
                             <td>
@@ -321,6 +333,10 @@
                             <option value="RiskOwner">RiskOwner</option>
                             <option value="Admin">Admin</option>
                         </select>
+                    </div>
+                    <div>
+                        <label>Password <i>(Leave blank to keep current)</i></label>
+                        <input type="password" class="form-control" name="password" placeholder="New Password">
                     </div>
                     <div>
                         <label>Departemen</label>

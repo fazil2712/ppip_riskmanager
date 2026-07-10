@@ -71,9 +71,18 @@
             <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin/changelog}" class="menu-item" style="padding-left: 40px; color: #dc3545;">
                 📜 System Changelog
             </a>
-            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/identifikasi}" class="menu-item active" style="padding-left: 40px;">Identifikasi Risiko</a>
-            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px;">Pengendalian Risiko</a>
-            <a th:href="@{/report}" class="menu-item" style="padding-left: 40px;">Report</a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/identifikasi}" class="menu-item active" style="padding-left: 40px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Identifikasi Risiko</span>
+                <span th:if="${hasIdentifikasiNotif}" style="background-color: red; color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold;">!</span>
+            </a>
+            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item" style="padding-left: 40px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Pengendalian Risiko</span>
+                <span th:if="${hasPengendalianNotif}" style="background-color: red; color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold;">!</span>
+            </a>
+            <a th:href="@{/report}" class="menu-item" style="padding-left: 40px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Report</span>
+                <span th:if="${hasReportNotif}" style="background-color: red; color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold;">!</span>
+            </a>
             
             <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;" onclick="return confirm('Apakah Anda yakin ingin log out?');">Log Out</a>
         </div>
@@ -117,7 +126,7 @@
                             </select>
                         </div>
                         <div style="flex: 1;">
-                            <label>Triwulan Awal</label>
+                            <label>Triwulan</label>
                             <select class="form-control" name="kuartal" required>
                                 <option value="Awal Tahun">Awal Tahun</option>
                                 <option value="1">Triwulan 1</option>

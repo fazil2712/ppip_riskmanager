@@ -145,6 +145,14 @@ public class WebController {
         List<RiskProject> requestedProjects = riskProjectRepository.findByDibuatOlehAndUpdateTriwulanRequestedTrue(user.getNama());
         model.addAttribute("requestedProjects", requestedProjects);
         
+        if (!"Admin".equals(user.getRole()) && !"RiskOwner".equals(user.getRole())) {
+            List<RiskProject> notifProjects = riskProjectRepository.findByNotifPengendalianRiskOfficerTrueAndDibuatOleh(user.getNama());
+            for (RiskProject p : notifProjects) {
+                p.setNotifPengendalianRiskOfficer(false);
+                riskProjectRepository.save(p);
+            }
+        }
+        
         return "pengendalian";
     }
     
@@ -165,6 +173,11 @@ public class WebController {
             projects = riskProjectRepository.findByRiskOwner(user.getNama());
         } else {
             projects = riskProjectRepository.findByDibuatOleh(user.getNama());
+            List<RiskProject> notifProjects = riskProjectRepository.findByNotifIdentifikasiRiskOfficerTrueAndDibuatOleh(user.getNama());
+            for (RiskProject p : notifProjects) {
+                p.setNotifIdentifikasiRiskOfficer(false);
+                riskProjectRepository.save(p);
+            }
         }
         
         List<User> riskOwners = userService.getAllUsers().stream()
@@ -244,6 +257,7 @@ public class WebController {
         project.setRencanaPengendalianFile(saveProjectFile(rencanaPengendalianFile, "rencana_pengendalian"));
 
         riskProjectRepository.save(project);
+        systemLogService.logAction(user, "CREATE_PROJECT", "Created Identifikasi Risiko: " + project.getIdRisiko());
         redirectAttributes.addFlashAttribute("successMessage", "Data Identifikasi Risiko berhasil ditambahkan!");
         
         return "redirect:/identifikasi";
@@ -344,6 +358,8 @@ public class WebController {
             project.setAdminApproval("pending");
             project.setRiskOwnerApproval("pending");
             project.setRejectionReason(null);
+            project.setNotifReportAdmin(true);
+            project.setNotifReportRiskOwner(true);
             riskProjectRepository.save(project);
             
             riskProjectHistoryRepository.save(new RiskProjectHistory(project, "SUBMIT_IDENTIFIKASI"));
@@ -368,11 +384,24 @@ public class WebController {
             approvedProjects = riskProjectRepository.findByApprovalStatus("open");
             historyProjects = riskProjectHistoryRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "timestamp"));
             pendingTriwulan = pengendalianRisikoRepository.findByApprovalStatus("menunggu");
+            if ("Admin".equals(user.getRole())) {
+                List<RiskProject> notifProjects = riskProjectRepository.findByNotifReportAdminTrue();
+                for (RiskProject p : notifProjects) {
+                    p.setNotifReportAdmin(false);
+                    riskProjectRepository.save(p);
+                }
+            }
         } else if ("RiskOwner".equals(user.getRole())) {
             projects = riskProjectRepository.findByRiskOwnerAndApprovalStatus(user.getNama(), "menunggu");
             approvedProjects = riskProjectRepository.findByRiskOwnerAndApprovalStatus(user.getNama(), "open");
             historyProjects = riskProjectHistoryRepository.findByRiskOwnerOrderByTimestampDesc(user.getNama());
             pendingTriwulan = pengendalianRisikoRepository.findByRiskProjectRiskOwnerAndApprovalStatus(user.getNama(), "menunggu");
+            
+            List<RiskProject> notifProjects = riskProjectRepository.findByNotifReportRiskOwnerTrueAndRiskOwner(user.getNama());
+            for (RiskProject p : notifProjects) {
+                p.setNotifReportRiskOwner(false);
+                riskProjectRepository.save(p);
+            }
         } else {
             projects = riskProjectRepository.findByDibuatOlehAndApprovalStatusNot(user.getNama(), "tersimpan");
             approvedProjects = riskProjectRepository.findByDibuatOlehAndApprovalStatus(user.getNama(), "open");
@@ -406,6 +435,7 @@ public class WebController {
                 project.setApprovalStatus("open");
                 project.setStatus("Open"); // sync with general status
             }
+            project.setNotifIdentifikasiRiskOfficer(true);
             riskProjectRepository.save(project);
             
             List<RiskProjectHistory> histories = riskProjectHistoryRepository.findByProjectIdOrderByTimestampDesc(project.getId());
@@ -438,6 +468,7 @@ public class WebController {
             project.setApprovalStatus("rejected");
             project.setRejectionReason(reason);
             project.setStatus("Closed"); // Optionally mark project itself as Closed
+            project.setNotifIdentifikasiRiskOfficer(true);
             
             riskProjectRepository.save(project);
             
@@ -616,6 +647,7 @@ public class WebController {
                            @RequestParam("badgeId") String badgeId,
                            @RequestParam("role") String role,
                            @RequestParam("departemen") String departemen,
+                           @RequestParam(value = "password", required = false) String password,
                            @RequestParam(value = "file", required = false) MultipartFile file,
                            HttpSession session, RedirectAttributes redirectAttributes) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -631,6 +663,10 @@ public class WebController {
                 existingUser.setBadgeId(badgeId);
                 existingUser.setRole(role);
                 existingUser.setDepartemen(departemen);
+                
+                if (password != null && !password.trim().isEmpty()) {
+                    existingUser.setPassword(password);
+                }
                 
                 if (file != null && !file.isEmpty()) {
                     Path uploadPath = Paths.get(UPLOAD_DIR);
@@ -696,6 +732,7 @@ public class WebController {
             project.setUpdateTriwulanRequested(true);
             project.setRequestedTriwulanKe(triwulanKe);
             project.setRequestedTriwulanTahun(triwulanTahun);
+            project.setNotifPengendalianRiskOfficer(true);
             riskProjectRepository.save(project);
             redirectAttributes.addFlashAttribute("successMessage", "Permintaan update triwulan berhasil dikirim ke Risk Officer.");
         }
@@ -735,6 +772,8 @@ public class WebController {
             project.setUpdateTriwulanRequested(false);
             project.setRequestedTriwulanKe(null);
             project.setRequestedTriwulanTahun(null);
+            project.setNotifReportAdmin(true);
+            project.setNotifReportRiskOwner(true);
             riskProjectRepository.save(project);
             
             riskProjectHistoryRepository.save(new RiskProjectHistory(project, pr, "UPDATE_TRIWULAN_" + pr.getTriwulanKe()));
@@ -770,6 +809,10 @@ public class WebController {
             }
             pengendalianRisikoRepository.save(pr);
             
+            RiskProject projectToNotify = pr.getRiskProject();
+            projectToNotify.setNotifPengendalianRiskOfficer(true);
+            riskProjectRepository.save(projectToNotify);
+            
             List<RiskProjectHistory> histories = riskProjectHistoryRepository.findByProjectIdOrderByTimestampDesc(pr.getRiskProject().getId());
             if (!histories.isEmpty()) {
                 RiskProjectHistory latest = histories.get(0);
@@ -802,6 +845,10 @@ public class WebController {
             pr.setApprovalStatus("rejected");
             pr.setRejectionReason(reason);
             pengendalianRisikoRepository.save(pr);
+            
+            RiskProject projectToNotify = pr.getRiskProject();
+            projectToNotify.setNotifPengendalianRiskOfficer(true);
+            riskProjectRepository.save(projectToNotify);
             
             List<RiskProjectHistory> histories = riskProjectHistoryRepository.findByProjectIdOrderByTimestampDesc(pr.getRiskProject().getId());
             if (!histories.isEmpty()) {

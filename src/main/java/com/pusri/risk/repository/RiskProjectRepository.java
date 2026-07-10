@@ -25,4 +25,14 @@ public interface RiskProjectRepository extends JpaRepository<RiskProject, Long> 
     List<RiskProject> findByRiskOwnerAndApprovalStatusIn(String riskOwner, List<String> statuses);
     List<RiskProject> findByDibuatOlehAndApprovalStatusIn(String dibuatOleh, List<String> statuses);
     List<RiskProject> findByDibuatOlehAndUpdateTriwulanRequestedTrue(String dibuatOleh);
+
+    boolean existsByNotifReportAdminTrue();
+    boolean existsByNotifReportRiskOwnerTrueAndRiskOwner(String riskOwner);
+    boolean existsByNotifIdentifikasiRiskOfficerTrueAndDibuatOleh(String dibuatOleh);
+    boolean existsByNotifPengendalianRiskOfficerTrueAndDibuatOleh(String dibuatOleh);
+
+    List<RiskProject> findByNotifReportAdminTrue();
+    List<RiskProject> findByNotifReportRiskOwnerTrueAndRiskOwner(String riskOwner);
+    List<RiskProject> findByNotifIdentifikasiRiskOfficerTrueAndDibuatOleh(String dibuatOleh);
+    List<RiskProject> findByNotifPengendalianRiskOfficerTrueAndDibuatOleh(String dibuatOleh);
 }

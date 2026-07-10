@@ -79,6 +79,18 @@ public class RiskProject {
     @OrderBy("rejectedAt DESC")
     private List<RejectionHistory> rejectionHistories;
 
+    @Column(name = "notif_report_admin", columnDefinition = "boolean default false")
+    private boolean notifReportAdmin = false;
+
+    @Column(name = "notif_report_risk_owner", columnDefinition = "boolean default false")
+    private boolean notifReportRiskOwner = false;
+
+    @Column(name = "notif_identifikasi_risk_officer", columnDefinition = "boolean default false")
+    private boolean notifIdentifikasiRiskOfficer = false;
+
+    @Column(name = "notif_pengendalian_risk_officer", columnDefinition = "boolean default false")
+    private boolean notifPengendalianRiskOfficer = false;
+
     public RiskProject() {}
 
     public void calculateRiskMatrix() {
@@ -454,5 +466,37 @@ public class RiskProject {
 
     public void setRequestedTriwulanTahun(Integer requestedTriwulanTahun) {
         this.requestedTriwulanTahun = requestedTriwulanTahun;
+    }
+
+    public boolean isNotifReportAdmin() {
+        return notifReportAdmin;
+    }
+
+    public void setNotifReportAdmin(boolean notifReportAdmin) {
+        this.notifReportAdmin = notifReportAdmin;
+    }
+
+    public boolean isNotifReportRiskOwner() {
+        return notifReportRiskOwner;
+    }
+
+    public void setNotifReportRiskOwner(boolean notifReportRiskOwner) {
+        this.notifReportRiskOwner = notifReportRiskOwner;
+    }
+
+    public boolean isNotifIdentifikasiRiskOfficer() {
+        return notifIdentifikasiRiskOfficer;
+    }
+
+    public void setNotifIdentifikasiRiskOfficer(boolean notifIdentifikasiRiskOfficer) {
+        this.notifIdentifikasiRiskOfficer = notifIdentifikasiRiskOfficer;
+    }
+
+    public boolean isNotifPengendalianRiskOfficer() {
+        return notifPengendalianRiskOfficer;
+    }
+
+    public void setNotifPengendalianRiskOfficer(boolean notifPengendalianRiskOfficer) {
+        this.notifPengendalianRiskOfficer = notifPengendalianRiskOfficer;
     }
 }
