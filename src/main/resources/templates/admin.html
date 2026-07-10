@@ -241,7 +241,6 @@
                     <thead>
                         <tr>
                             <th>ID Risiko</th>
-                            <th>Nama Project</th>
                             <th>Dibuat Oleh</th>
                             <th>Risk Owner</th>
                             <th>Tahun / Kuartal</th>
@@ -253,7 +252,6 @@
                     <tbody>
                         <tr th:each="p : ${projects}">
                             <td th:text="${p.idRisiko}"></td>
-                            <td th:text="${p.namaProject}"></td>
                             <td th:text="${p.dibuatOleh}"></td>
                             <td th:text="${p.riskOwner}"></td>
                             <td th:text="${p.tahun + ' / ' + p.kuartal}"></td>
@@ -266,7 +264,6 @@
                             <td>
                                 <button type="button" class="btn-edit" 
                                         th:data-id="${p.id}" 
-                                        th:data-namaproject="${p.namaProject}" 
                                         th:data-idrisiko="${p.idRisiko}"
                                         th:data-dibuatoleh="${p.dibuatOleh}"
                                         th:data-unitkerja="${p.unitKerja}"
@@ -343,7 +340,6 @@
             <form th:action="@{/admin/project/edit}" method="post">
                 <input type="hidden" id="edit-p-id" name="id">
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-                    <div><label>Nama Project</label><input type="text" class="form-control" id="edit-p-namaProject" name="namaProject" required></div>
                     <div><label>ID Risiko</label><input type="text" class="form-control" id="edit-p-idRisiko" name="idRisiko" required></div>
                     <div><label>Dibuat Oleh</label><input type="text" class="form-control" id="edit-p-dibuatOleh" name="dibuatOleh" required></div>
                     
@@ -420,7 +416,6 @@
         
         function openEditProjectModal(btn) {
             document.getElementById('edit-p-id').value = btn.getAttribute('data-id');
-            document.getElementById('edit-p-namaProject').value = btn.getAttribute('data-namaproject');
             document.getElementById('edit-p-idRisiko').value = btn.getAttribute('data-idrisiko');
             document.getElementById('edit-p-dibuatOleh').value = btn.getAttribute('data-dibuatoleh');
             document.getElementById('edit-p-unitKerja').value = btn.getAttribute('data-unitkerja');

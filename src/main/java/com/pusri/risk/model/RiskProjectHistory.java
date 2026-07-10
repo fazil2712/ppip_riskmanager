@@ -18,7 +18,6 @@ public class RiskProjectHistory {
     private LocalDateTime timestamp;
     
     // Project data snapshot
-    private String namaProject;
     private String idRisiko;
     private String dibuatOleh;
     private String unitKerja;
@@ -87,7 +86,6 @@ public class RiskProjectHistory {
         this.actionType = actionType;
         this.timestamp = LocalDateTime.now();
         
-        this.namaProject = project.getNamaProject();
         this.idRisiko = project.getIdRisiko();
         this.dibuatOleh = project.getDibuatOleh();
         this.unitKerja = project.getUnitKerja();
@@ -150,8 +148,7 @@ public class RiskProjectHistory {
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
     
-    public String getNamaProject() { return namaProject; }
-    public void setNamaProject(String namaProject) { this.namaProject = namaProject; }
+
     public String getIdRisiko() { return idRisiko; }
     public void setIdRisiko(String idRisiko) { this.idRisiko = idRisiko; }
     public String getDibuatOleh() { return dibuatOleh; }

@@ -112,6 +112,7 @@ public class WebController {
         // Pass current selected filters to the view
         model.addAttribute("selectedYear", year);
         model.addAttribute("selectedQuarter", quarter);
+        model.addAttribute("currentYear", java.time.Year.now().getValue());
         
         long totalRisk = projects.size();
         long riskLow = projects.stream().filter(p -> "Low".equalsIgnoreCase(p.getRiskLevel())).count();
@@ -209,7 +210,6 @@ public class WebController {
 
         RiskProject project = new RiskProject();
         project.setIdRisiko(idRisiko);
-        project.setNamaProject(idRisiko); // Default to ID Risiko
         project.setDibuatOleh(user.getNama());
         project.setUnitKerja(user.getDepartemen());
         project.setSasaranUnitKerja(sasaranUnitKerja);
@@ -288,7 +288,6 @@ public class WebController {
             }
 
             project.setIdRisiko(idRisiko);
-            project.setNamaProject(idRisiko);
             project.setSasaranUnitKerja(sasaranUnitKerja);
             project.setKonteksEksternal(konteksEksternal);
             project.setKonteksInternal(konteksInternal);
@@ -500,7 +499,6 @@ public class WebController {
     
     @PostMapping("/admin/project/edit")
     public String editProject(@RequestParam("id") Long id,
-                              @RequestParam("namaProject") String namaProject,
                               @RequestParam("idRisiko") String idRisiko,
                               @RequestParam("dibuatOleh") String dibuatOleh,
                               @RequestParam("unitKerja") String unitKerja,
@@ -528,7 +526,6 @@ public class WebController {
         try {
             RiskProject p = riskProjectRepository.findById(id).orElse(null);
             if(p != null) {
-                p.setNamaProject(namaProject);
                 p.setIdRisiko(idRisiko);
                 p.setDibuatOleh(dibuatOleh);
                 p.setUnitKerja(unitKerja);

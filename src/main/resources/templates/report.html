@@ -72,7 +72,7 @@
             <!-- Report Table -->
             <div class="card">
                 <h3 th:if="${session.loggedInUser.role == 'RiskOfficer'}" onclick="toggleTable('table1')" style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                    <span>Status Proyek Saya</span>
+                    <span>Status Risiko  Saya</span>
                     <span id="icon-table1">▼</span>
                 </h3>
                 <h3 th:unless="${session.loggedInUser.role == 'RiskOfficer'}" onclick="toggleTable('table1')" style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
@@ -106,7 +106,7 @@
                                     <div style="display: flex; flex-direction: column; gap: 5px;">
                                         <!-- Only show Accept if they haven't already accepted -->
                                         <form th:if="${(session.loggedInUser.role == 'Admin' && p.adminApproval != 'approved') || (session.loggedInUser.role == 'RiskOwner' && p.riskOwnerApproval != 'approved')}" 
-                                              th:action="@{/report/approve}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui proyek ini?');">
+                                              th:action="@{/report/approve}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui ini?');">
                                             <input type="hidden" name="id" th:value="${p.id}">
                                             <button type="submit" class="btn-primary" style="padding: 5px; font-size: 11px; background-color: #28a745; width: 100%;">Terima</button>
                                         </form>
@@ -241,7 +241,7 @@
             <!-- Proyek Disetujui Table -->
             <div class="card" style="margin-bottom: 20px;" th:unless="${session.loggedInUser.role == 'RiskOfficer'}">
                 <h3 onclick="toggleTable('table2')" style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                    <span>Proyek Disetujui (List Registrasi Risiko)</span>
+                    <span>List Registrasi Risiko Disetujui</span>
                     <span id="icon-table2">▼</span>
                 </h3>
                 
@@ -352,7 +352,7 @@
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(approvedProjects)}">
-                                <td colspan="12" style="text-align: center; color: #888;">Tidak ada proyek disetujui.</td>
+                                <td colspan="12" style="text-align: center; color: #888;">Belum ada yang disetujui.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -621,7 +621,7 @@
     <div id="rejectModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
         <div style="background:white; padding:30px; border-radius:8px; width:90%; max-width:500px; position:relative; margin: 15vh auto;">
             <span style="position:absolute; top:20px; right:30px; font-size:24px; cursor:pointer;" onclick="closeRejectModal()">&times;</span>
-            <h3 style="margin-top:0; color:#dc3545;">Tolak Proyek</h3>
+            <h3 style="margin-top:0; color:#dc3545;">Tolak Risiko</h3>
             <form th:action="@{/report/reject}" method="post">
                 <input type="hidden" name="id" id="rejectId">
                 <div style="margin-bottom: 15px;">
@@ -630,7 +630,7 @@
                 </div>
                 <div style="text-align:right;">
                     <button type="button" class="btn-primary" style="background-color:#6c757d; margin-right:10px;" onclick="closeRejectModal()">Batal</button>
-                    <button type="submit" class="btn-primary" style="background-color:#dc3545;">Tolak Proyek</button>
+                    <button type="submit" class="btn-primary" style="background-color:#dc3545;">Tolak Risiko</button>
                 </div>
             </form>
         </div>
@@ -677,7 +677,7 @@
             <form th:action="@{/report/request-triwulan}" method="post">
                 <input type="hidden" name="id" id="requestTriwulanId">
                 <div style="margin-bottom: 15px;">
-                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Tahun Proyek:</label>
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Tahun:</label>
                     <select class="form-control" name="triwulanTahun" id="requestTriwulanTahun" required></select>
                 </div>
                 <div style="margin-bottom: 15px;">

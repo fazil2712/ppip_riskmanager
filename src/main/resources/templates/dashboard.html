@@ -139,10 +139,10 @@
                         <label for="year" style="font-weight: 600; color: var(--text-muted); margin:0;">Tahun:</label>
                         <select name="year" id="year" onchange="document.getElementById('yearFilterForm').submit();" style="padding: 6px 12px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit;">
                             <option value="">Semua</option>
-                            <option value="2022" th:selected="${selectedYear == 2022}">2022</option>
-                            <option value="2023" th:selected="${selectedYear == 2023}">2023</option>
-                            <option value="2024" th:selected="${selectedYear == 2024}">2024</option>
-                            <option value="2025" th:selected="${selectedYear == 2025}">2025</option>
+                            <option th:each="y : ${#numbers.sequence(currentYear, 2020, -1)}" 
+                                    th:value="${y}" 
+                                    th:text="${y}" 
+                                    th:selected="${selectedYear == y}"></option>
                         </select>
                     </div>
 
@@ -291,7 +291,6 @@
         /*[# th:each="p : ${projects}"]*/
         projects.push({
             idRisiko: [[${p.idRisiko}]],
-            namaProject: [[${p.namaProject}]],
             unitKerja: [[${p.unitKerja}]],
             kategoriRisiko: [[${p.kategoriRisiko}]],
             status: [[${p.status}]],
@@ -357,35 +356,96 @@
         const chart2Data = getChartData(statusCounts);
         const chart3Data = getChartData(kategoriRisikoCounts);
         
-        const commonOptions = { responsive: true, plugins: { legend: { display: true, position: 'bottom' } } };
+        const commonOptions = { 
+            responsive: true, 
+            cutout: '85%',
+            layout: {
+                padding: 15
+            },
+            plugins: { 
+                legend: { display: true, position: 'bottom' },
+                tooltip: {
+                    enabled: false
+                }
+            } 
+        };
+
+        const doughnutCenterTextPlugin = {
+            id: 'doughnutCenterText',
+            beforeDraw: (chart) => {
+                if (chart.config.data.labels[0] === 'No Data') return;
+                
+                const { ctx, data, chartArea: { top, bottom, left, right } } = chart;
+                const activeElements = chart.getActiveElements();
+                const dataset = data.datasets[0];
+                const total = dataset.data.reduce((acc, val) => acc + val, 0);
+                if (total === 0) return;
+
+                let targetValue = 0;
+                let targetLabel = '';
+                let targetColor = '#333';
+
+                if (activeElements.length > 0) {
+                    let index = activeElements[0].index;
+                    targetValue = dataset.data[index];
+                    targetLabel = chart.config.data.labels[index];
+                    targetColor = dataset.backgroundColor[index];
+                } else {
+                    targetValue = Math.max(...dataset.data);
+                    let index = dataset.data.indexOf(targetValue);
+                    targetLabel = chart.config.data.labels[index];
+                    targetColor = dataset.backgroundColor[index];
+                }
+
+                let percentage = Math.round((targetValue / total) * 100);
+                
+                ctx.save();
+                let centerX = (left + right) / 2;
+                let centerY = (top + bottom) / 2;
+
+                ctx.font = 'bold 36px Inter, sans-serif';
+                ctx.fillStyle = targetColor;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(percentage + '%', centerX, centerY - 12);
+
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.fillStyle = targetColor;
+                ctx.fillText(targetLabel, centerX, centerY + 18);
+                ctx.restore();
+            }
+        };
 
         new Chart(document.getElementById('chart1'), {
-            type: 'pie',
+            type: 'doughnut',
             data: {
                 labels: chart1Labels,
-                datasets: [{ data: chart1Values, backgroundColor: chart1Colors }]
+                datasets: [{ data: chart1Values, backgroundColor: chart1Colors, borderWidth: 0, hoverOffset: 15 }]
             },
-            options: commonOptions
+            options: commonOptions,
+            plugins: [doughnutCenterTextPlugin]
         });
 
         const dynamicColors = ['#28a745', '#004c97', '#ffc107', '#dc3545', '#17a2b8', '#6c757d'];
 
         new Chart(document.getElementById('chart2'), {
-            type: 'pie',
+            type: 'doughnut',
             data: {
                 labels: chart2Data.labels,
-                datasets: [{ data: chart2Data.data, backgroundColor: chart2Data.labels[0] === 'No Data' ? ['#eeeeee'] : dynamicColors }]
+                datasets: [{ data: chart2Data.data, backgroundColor: chart2Data.labels[0] === 'No Data' ? ['#eeeeee'] : dynamicColors, borderWidth: 0, hoverOffset: 15 }]
             },
-            options: commonOptions
+            options: commonOptions,
+            plugins: [doughnutCenterTextPlugin]
         });
 
         new Chart(document.getElementById('chart3'), {
-            type: 'pie',
+            type: 'doughnut',
             data: {
                 labels: chart3Data.labels,
-                datasets: [{ data: chart3Data.data, backgroundColor: chart3Data.labels[0] === 'No Data' ? ['#eeeeee'] : [...dynamicColors].reverse() }]
+                datasets: [{ data: chart3Data.data, backgroundColor: chart3Data.labels[0] === 'No Data' ? ['#eeeeee'] : [...dynamicColors].reverse(), borderWidth: 0, hoverOffset: 15 }]
             },
-            options: commonOptions
+            options: commonOptions,
+            plugins: [doughnutCenterTextPlugin]
         });
         
         // 4. Heatmap Data with Bubbles and Details
@@ -433,7 +493,7 @@
                         bubble.style.fontSize = '12px';
                         bubble.style.fontWeight = 'bold';
                         bubble.style.boxShadow = '1px 1px 3px rgba(0,0,0,0.3)';
-                        bubble.title = proj.namaProject;
+                        bubble.title = proj.idRisiko;
                         bubble.innerText = globalProjectIndex;
                         
                         countSpan.appendChild(bubble);
@@ -446,7 +506,7 @@
                         detailItem.style.borderLeft = '4px solid var(--primary-yellow)';
                         detailItem.innerHTML = `<strong style="font-size:15px; display:inline-block; margin-bottom:5px;">
                                 <span style="display:inline-block; background:white; border:1px solid #ccc; border-radius:50%; width:22px; height:22px; text-align:center; line-height:20px; font-size:11px; margin-right:5px;">${globalProjectIndex}</span> 
-                                ${proj.idRisiko} - ${proj.namaProject}
+                                ${proj.idRisiko}
                             </strong> <br> 
                             <small style="color:var(--text-muted)">Unit Kerja: ${proj.unitKerja} | Kategori Risiko: ${proj.kategoriRisiko} | Status: ${proj.status}</small>`;
                         

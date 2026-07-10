@@ -131,7 +131,6 @@
                             <tr>
                                 <th style="width: 50px;">No</th>
                                 <th>ID Risiko</th>
-                                <th>Nama Project</th>
                                 <th>Risk Owner</th>
                                 <th>Aksi</th>
                             </tr>
@@ -140,7 +139,6 @@
                             <tr th:each="p, iterStat : ${requestedProjects}">
                                 <td th:text="${iterStat.count}"></td>
                                 <td th:text="${p.idRisiko}"></td>
-                                <td th:text="${p.namaProject}"></td>
                                 <td th:text="${p.riskOwner}"></td>
                                 <td>
                                     <div style="display: flex; gap: 5px; flex-wrap: wrap;">

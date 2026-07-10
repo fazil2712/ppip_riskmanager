@@ -11,8 +11,6 @@ public class RiskProject {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String namaProject;
-    
     // New attributes based on request
     private String idRisiko;
     private String dibuatOleh;
@@ -111,7 +109,7 @@ public class RiskProject {
     }
 
     public String generateReport() {
-        return "Report for Project: " + this.namaProject + " | Level: " + this.riskLevel;
+        return "Report for Project: " + this.idRisiko + " | Level: " + this.riskLevel;
     }
 
     // Getters and Setters
@@ -124,13 +122,7 @@ public class RiskProject {
         this.id = id;
     }
 
-    public String getNamaProject() {
-        return namaProject;
-    }
 
-    public void setNamaProject(String namaProject) {
-        this.namaProject = namaProject;
-    }
 
     public String getIdRisiko() {
         return idRisiko;
