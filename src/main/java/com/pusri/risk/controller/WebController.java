@@ -820,38 +820,30 @@ public class WebController {
         return "redirect:/report";
     }
 
-    @PostMapping("/pengendalian/submit-triwulan")
-    public String submitTriwulan(HttpSession session, 
-                                 @RequestParam("projectId") Long projectId,
-                                 @RequestParam("triwulanKe") Integer triwulanKe,
-                                 @RequestParam("triwulanTahun") Integer triwulanTahun,
-                                 @RequestParam("realisasiPengendalian") String realisasiPengendalian,
-                                 @RequestParam("peluangScore") Integer peluangScore,
-                                 @RequestParam("dampakScore") Integer dampakScore,
-                                 RedirectAttributes redirectAttributes) {
+    @GetMapping("/pengendalian/draft/{projectId}")
+    @ResponseBody
+    public PengendalianRisiko getTriwulanDraft(@PathVariable("projectId") Long projectId) {
+        return pengendalianRisikoRepository.findFirstByRiskProjectIdAndApprovalStatus(projectId, "draft");
+    }
+
+    @PostMapping("/pengendalian/submit-all-drafts")
+    public String submitAllDrafts(HttpSession session, RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("loggedInUser");
-        if (user == null || !"RiskOfficer".equals(user.getRole())) return "redirect:/login";
-
-        RiskProject project = riskProjectRepository.findById(projectId).orElse(null);
-        if (project != null) {
-            if (!user.getNama().equals(project.getDibuatOleh())) {
-                redirectAttributes.addFlashAttribute("error", "Anda tidak memiliki akses untuk submit update proyek ini.");
-                return "redirect:/pengendalian";
-            }
-            PengendalianRisiko pr = new PengendalianRisiko();
-            pr.setRealisasiPengendalian(realisasiPengendalian);
-            pr.setPeluangScore(peluangScore);
-            pr.setDampakScore(dampakScore);
-            pr.calculateRiskMatrix();
-            pr.setTriwulanKe(triwulanKe);
-            pr.setTriwulanTahun(triwulanTahun);
-            pr.setRiskProject(project);
-            pr.setApprovalStatus("menunggu");
-            pr.setAdminApproval("pending");
-            pr.setRiskOwnerApproval("pending");
-
-            pengendalianRisikoRepository.save(pr);
-
+        if (user == null || (!"Admin".equals(user.getRole()) && !"CORPORATE RISK OFFICER".equals(user.getRole()) && !"RiskOfficer".equals(user.getRole()))) {
+            return "redirect:/login";
+        }
+        
+        List<PengendalianRisiko> drafts = pengendalianRisikoRepository.findByRiskProjectDibuatOlehAndApprovalStatus(user.getNama(), "draft");
+        if (drafts.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Tidak ada draft update Triwulan yang bisa di-submit.");
+            return "redirect:/pengendalian";
+        }
+        
+        for (PengendalianRisiko draft : drafts) {
+            draft.setApprovalStatus("menunggu");
+            pengendalianRisikoRepository.save(draft);
+            
+            RiskProject project = draft.getRiskProject();
             project.setUpdateTriwulanRequested(false);
             project.setRequestedTriwulanKe(null);
             project.setRequestedTriwulanTahun(null);
@@ -859,10 +851,61 @@ public class WebController {
             project.setNotifReportRiskOwner(true);
             riskProjectRepository.save(project);
             
-            riskProjectHistoryRepository.save(new RiskProjectHistory(project, pr, "UPDATE_TRIWULAN_" + pr.getTriwulanKe()));
+            riskProjectHistoryRepository.save(new RiskProjectHistory(project, draft, "UPDATE_TRIWULAN_" + draft.getTriwulanKe()));
             systemLogService.logAction(user, "SUBMIT_TRIWULAN", "Submitted Triwulan Update for Project: " + project.getIdRisiko());
+        }
+        
+        redirectAttributes.addFlashAttribute("successMessage", drafts.size() + " Update Triwulan berhasil di-submit untuk persetujuan!");
+        return "redirect:/pengendalian";
+    }
+
+    @PostMapping("/pengendalian/submit-triwulan")
+    public String submitTriwulan(HttpSession session, 
+                                 @RequestParam("projectId") Long projectId,
+                                 @RequestParam("triwulanKe") Integer triwulanKe,
+                                 @RequestParam("triwulanTahun") Integer triwulanTahun,
+                                 @RequestParam("realisasiPengendalian") String realisasiPengendalian,
+                                 @RequestParam(value = "realisasiPengendalianFile", required = false) MultipartFile realisasiPengendalianFile,
+                                 @RequestParam("peluangScore") Integer peluangScore,
+                                 @RequestParam("dampakScore") Integer dampakScore,
+                                 RedirectAttributes redirectAttributes) {
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user == null || (!"Admin".equals(user.getRole()) && !"CORPORATE RISK OFFICER".equals(user.getRole()) && !"RiskOfficer".equals(user.getRole()))) {
+            return "redirect:/login";
+        }
+
+        RiskProject project = riskProjectRepository.findById(projectId).orElse(null);
+        if (project != null) {
+            if (!user.getNama().equals(project.getDibuatOleh()) && !"Admin".equals(user.getRole()) && !"CORPORATE RISK OFFICER".equals(user.getRole())) {
+                redirectAttributes.addFlashAttribute("error", "Anda tidak memiliki akses untuk submit update proyek ini.");
+                return "redirect:/pengendalian";
+            }
             
-            redirectAttributes.addFlashAttribute("successMessage", "Update Triwulan berhasil di-submit untuk persetujuan!");
+            PengendalianRisiko pr = pengendalianRisikoRepository.findFirstByRiskProjectIdAndApprovalStatus(projectId, "draft");
+            if (pr == null) {
+                pr = new PengendalianRisiko();
+                pr.setRiskProject(project);
+            }
+            
+            pr.setRealisasiPengendalian(realisasiPengendalian);
+            
+            if (realisasiPengendalianFile != null && !realisasiPengendalianFile.isEmpty()) {
+                String filePath = saveProjectFile(realisasiPengendalianFile, "pengendalian");
+                pr.setRealisasiPengendalianFile(filePath);
+            }
+            
+            pr.setPeluangScore(peluangScore);
+            pr.setDampakScore(dampakScore);
+            pr.calculateRiskMatrix();
+            pr.setTriwulanKe(triwulanKe);
+            pr.setTriwulanTahun(triwulanTahun);
+            pr.setApprovalStatus("draft");
+            pr.setAdminApproval("pending");
+            pr.setRiskOwnerApproval("pending");
+
+            pengendalianRisikoRepository.save(pr);
+            
+            redirectAttributes.addFlashAttribute("successMessage", "Draft Triwulan berhasil disimpan!");
         }
         return "redirect:/pengendalian";
     }
@@ -890,6 +933,21 @@ public class WebController {
                 project.setTotalRiskScore(pr.getTotalRiskScore());
                 project.setRiskLevel(pr.getRiskLevel());
                 riskProjectRepository.save(project);
+                
+                // Check if all updates for this user are approved
+                String dibuatOleh = project.getDibuatOleh();
+                long pendingCount = pengendalianRisikoRepository.countByRiskProjectDibuatOlehAndApprovalStatusIn(
+                    dibuatOleh, java.util.Arrays.asList("menunggu", "draft", "rejected")
+                );
+                
+                if (pendingCount == 0) {
+                    User submitter = userService.findByNama(dibuatOleh);
+                    if (submitter != null) {
+                        submitter.setTriwulanDeadline(null);
+                        submitter.setTriwulanStartDate(null);
+                        userService.updateUser(submitter);
+                    }
+                }
             }
             pengendalianRisikoRepository.save(pr);
             

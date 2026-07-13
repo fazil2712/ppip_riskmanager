@@ -232,6 +232,7 @@
                                             <div style="font-size:13px; line-height:1.5;">
                                                 <div><strong>Realisasi Pengendalian:</strong></div>
                                                 <div style="margin-bottom:10px; white-space:pre-wrap;" th:text="${prItem.realisasiPengendalian}"></div>
+                                                <a th:if="${prItem.realisasiPengendalianFile != null}" th:href="@{'/' + ${prItem.realisasiPengendalianFile}}" target="_blank" class="file-link">📎 Download File Pendukung</a>
                                                 <div style="display:flex; gap:20px; background:white; padding:10px; border:1px solid #e0e0e0; border-radius:4px;">
                                                     <div><strong>Peluang:</strong> <span th:text="${prItem.peluangScore}"></span></div>
                                                     <div><strong>Dampak:</strong> <span th:text="${prItem.dampakScore}"></span></div>
@@ -348,6 +349,7 @@
                                             <div style="font-size:13px; line-height:1.5;">
                                                 <div><strong>Realisasi Pengendalian:</strong></div>
                                                 <div style="margin-bottom:10px; white-space:pre-wrap;" th:text="${pr.realisasiPengendalian}"></div>
+                                                <a th:if="${pr.realisasiPengendalianFile != null}" th:href="@{'/' + ${pr.realisasiPengendalianFile}}" target="_blank" class="file-link">📎 Download File Pendukung</a>
                                                 <div style="display:flex; gap:20px; background:white; padding:10px; border:1px solid #e0e0e0; border-radius:4px;">
                                                     <div><strong>Peluang:</strong> <span th:text="${pr.peluangScore}"></span></div>
                                                     <div><strong>Dampak:</strong> <span th:text="${pr.dampakScore}"></span></div>
@@ -393,7 +395,10 @@
                                 <td th:text="${iterStat.count}"></td>
                                 <td th:text="${pr.riskProject.idRisiko}"></td>
                                 <td th:text="${pr.triwulanKe}"></td>
-                                <td th:text="${pr.realisasiPengendalian}"></td>
+                                <td>
+                                    <span th:text="${pr.realisasiPengendalian}"></span>
+                                    <br><a th:if="${pr.realisasiPengendalianFile != null}" th:href="@{'/' + ${pr.realisasiPengendalianFile}}" target="_blank" class="file-link">📎 Download File</a>
+                                </td>
                                 <td th:text="${pr.totalRiskScore}"></td>
                                 <td th:text="${pr.riskLevel}"></td>
                                 <td>
@@ -461,6 +466,7 @@
                                             <div style="font-size:13px; line-height:1.5;">
                                                 <div><strong>Realisasi Pengendalian:</strong></div>
                                                 <div style="margin-bottom:10px; white-space:pre-wrap;" th:text="${prItem.realisasiPengendalian}"></div>
+                                                <a th:if="${prItem.realisasiPengendalianFile != null}" th:href="@{'/' + ${prItem.realisasiPengendalianFile}}" target="_blank" class="file-link">📎 Download File Pendukung</a>
                                                 <div style="display:flex; gap:20px; background:white; padding:10px; border:1px solid #e0e0e0; border-radius:4px;">
                                                     <div><strong>Peluang:</strong> <span th:text="${prItem.peluangScore}"></span></div>
                                                     <div><strong>Dampak:</strong> <span th:text="${prItem.dampakScore}"></span></div>
@@ -610,6 +616,7 @@
                                         </h4>
                                         <h4 style="margin-top:10px; border-bottom:1px solid #ddd; padding-bottom:5px;">Realisasi Pengendalian</h4>
                                         <p th:text="${p.realisasiPengendalian}"></p>
+                                        <a th:if="${p.realisasiPengendalianFile != null}" th:href="@{'/' + ${p.realisasiPengendalianFile}}" target="_blank" class="file-link">📎 Download File Pendukung</a>
                                         
                                         <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Skor Risiko Update</h4>
                                         <p>Peluang: <span th:text="${p.peluangScore}"></span>, Dampak: <span th:text="${p.dampakScore}"></span></p>

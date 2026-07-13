@@ -502,6 +502,7 @@
                                         <div style="font-size:13px; line-height:1.5;">
                                             <div><strong>Realisasi Pengendalian:</strong></div>
                                             <div style="margin-bottom:10px; white-space:pre-wrap;" th:text="${pr.realisasiPengendalian}"></div>
+                                            <a th:if="${pr.realisasiPengendalianFile != null}" th:href="@{'/' + ${pr.realisasiPengendalianFile}}" target="_blank" class="file-link">📎 Download File Pendukung</a>
                                             <div style="display:flex; gap:20px; background:white; padding:10px; border:1px solid #e0e0e0; border-radius:4px;">
                                                 <div><strong>Peluang:</strong> <span th:text="${pr.peluangScore}"></span></div>
                                                 <div><strong>Dampak:</strong> <span th:text="${pr.dampakScore}"></span></div>

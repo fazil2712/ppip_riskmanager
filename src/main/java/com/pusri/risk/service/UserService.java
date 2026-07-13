@@ -36,6 +36,10 @@ public class UserService {
         return userRepository.findById(id).orElse(null);
     }
     
+    public User findByNama(String nama) {
+        return userRepository.findFirstByNama(nama);
+    }
+    
     public void updateUser(User user) {
         userRepository.save(user);
     }

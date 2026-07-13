@@ -13,6 +13,8 @@ public class PengendalianRisiko {
     @Column(columnDefinition = "TEXT")
     private String realisasiPengendalian;
     
+    private String realisasiPengendalianFile;
+    
     private int peluangScore;
     private int dampakScore;
     private int totalRiskScore;
@@ -81,6 +83,14 @@ public class PengendalianRisiko {
 
     public void setRealisasiPengendalian(String realisasiPengendalian) {
         this.realisasiPengendalian = realisasiPengendalian;
+    }
+
+    public String getRealisasiPengendalianFile() {
+        return realisasiPengendalianFile;
+    }
+
+    public void setRealisasiPengendalianFile(String realisasiPengendalianFile) {
+        this.realisasiPengendalianFile = realisasiPengendalianFile;
     }
 
     public int getPeluangScore() {

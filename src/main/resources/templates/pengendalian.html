@@ -196,11 +196,19 @@
                                 <td th:text="${p.idRisiko}"></td>
                                 <td th:text="${p.riskOwner}"></td>
                                 <td>
-                                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                    <div style="display: flex; gap: 5px; flex-wrap: wrap; align-items: center;">
                                         <button class="btn-info" style="padding: 5px 10px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
                                                 th:onclick="'openDetailModal(\'detail-risiko-' + ${p.id} + '\', \'Detail Project\')'">Detail</button>
-                                        <button class="btn-primary" style="padding: 5px 10px; font-size: 11px;" 
-                                                th:onclick="'openTriwulanModal(' + ${p.id} + ')'">Isi Triwulan</button>
+                                        
+                                        <th:block th:with="draft=${p.pengendalianRisikoList.^[approvalStatus == 'draft']}, rejected=${p.pengendalianRisikoList.^[approvalStatus == 'rejected']}">
+                                            <button class="btn-primary" style="padding: 5px 10px; font-size: 11px;" 
+                                                    th:onclick="'openTriwulanModal(' + ${p.id} + ')'">
+                                                <span th:text="${draft != null ? 'Edit Draft' : (rejected != null ? 'Revisi Triwulan' : 'Isi Triwulan')}"></span>
+                                            </button>
+                                            <div th:if="${rejected != null}" style="color: red; font-size: 11px; width: 100%;">
+                                                <strong>Ditolak:</strong> <span th:text="${rejected.rejectionReason}"></span>
+                                            </div>
+                                        </th:block>
                                     </div>
                                     
                                     <!-- Hidden Detail Content -->
@@ -245,6 +253,13 @@
                         </tbody>
                     </table>
                 </div>
+                
+                <div th:if="${!#lists.isEmpty(requestedProjects)}" style="margin-top: 15px; text-align: right;">
+                    <form th:action="@{/pengendalian/submit-all-drafts}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin submit semua draft Triwulan untuk persetujuan Admin & Risk Owner?');">
+                        <button type="submit" class="btn-primary" style="padding: 10px 20px; font-size: 14px;">Submit Semua Update Triwulan</button>
+                    </form>
+                </div>
+
                 </div> <!-- Close lock wrapper -->
             </div>
         </div>
@@ -256,7 +271,7 @@
             <span style="position:absolute; top:20px; right:30px; font-size:24px; cursor:pointer;" onclick="closeTriwulanModal()">&times;</span>
             <h3 style="margin-top:0; color:var(--primary-blue); border-bottom:2px solid var(--primary-blue); padding-bottom:10px;">Form Update Triwulan</h3>
             
-            <form th:action="@{/pengendalian/submit-triwulan}" method="post">
+            <form th:action="@{/pengendalian/submit-triwulan}" method="post" enctype="multipart/form-data">
                 <input type="hidden" id="triwulanProjectId" name="projectId">
                 
                 <div style="display: flex; gap: 15px; margin-top: 15px;">
@@ -278,7 +293,12 @@
                 <div style="margin-top: 15px; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background: #fafafa;">
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label style="font-size:14px; font-weight:600; color:#333; display:block; margin-bottom:10px;">Realisasi Pengendalian</label>
-                        <textarea class="form-control" name="realisasiPengendalian" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px;" required placeholder="Tuliskan realisasi pengendalian pada triwulan ini..."></textarea>
+                        <textarea id="realisasiPengendalianInput" class="form-control" name="realisasiPengendalian" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px;" required placeholder="Tuliskan realisasi pengendalian pada triwulan ini..."></textarea>
+                        
+                        <div style="margin-top: 10px; font-size: 13px; color: #555;">
+                            <label style="display:block; margin-bottom: 5px;">Upload Dokumen Pendukung (Opsional):</label>
+                            <input type="file" name="realisasiPengendalianFile" class="form-control" style="width: 100%;">
+                        </div>
                     </div>
                     
                     <h4 style="margin-top:25px; color:var(--primary-blue); font-size:14px; margin-bottom: 10px;">Penilaian Risiko Residual</h4>
@@ -355,13 +375,49 @@
 
         function openTriwulanModal(projectId) {
             document.getElementById('triwulanProjectId').value = projectId;
-            document.getElementById('triwulanModal').style.display = 'flex';
-            document.getElementById('peluangScore').value = '';
-            document.getElementById('dampakScore').value = '';
-            document.getElementById('totalScoreDisplay').innerText = '-';
-            document.getElementById('totalScoreDisplay').style.color = '#333';
-            document.getElementById('riskLevelDisplay').innerText = '-';
-            document.getElementById('riskLevelDisplay').style.color = '#333';
+            
+            // Fetch draft if exists
+            fetch('/pengendalian/draft/' + projectId)
+                .then(response => {
+                    if (!response.ok) return {};
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.id) {
+                        document.getElementById('triwulanTahunSelect').value = data.triwulanTahun || new Date().getFullYear();
+                        document.getElementById('triwulanKeSelect').value = data.triwulanKe || 1;
+                        document.getElementById('realisasiPengendalianInput').value = data.realisasiPengendalian || '';
+                        document.getElementById('peluangScore').value = data.peluangScore || '';
+                        document.getElementById('dampakScore').value = data.dampakScore || '';
+                        calcRisk();
+                    } else {
+                        document.getElementById('triwulanTahunSelect').value = new Date().getFullYear();
+                        document.getElementById('triwulanKeSelect').value = 1;
+                        document.getElementById('realisasiPengendalianInput').value = '';
+                        document.getElementById('peluangScore').value = '';
+                        document.getElementById('dampakScore').value = '';
+                        document.getElementById('totalScoreDisplay').innerText = '-';
+                        document.getElementById('totalScoreDisplay').style.color = '#333';
+                        document.getElementById('riskLevelDisplay').innerText = '-';
+                        document.getElementById('riskLevelDisplay').style.color = '#333';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching draft:', error);
+                    // Reset to default on error
+                    document.getElementById('triwulanTahunSelect').value = new Date().getFullYear();
+                    document.getElementById('triwulanKeSelect').value = 1;
+                    document.getElementById('realisasiPengendalianInput').value = '';
+                    document.getElementById('peluangScore').value = '';
+                    document.getElementById('dampakScore').value = '';
+                    document.getElementById('totalScoreDisplay').innerText = '-';
+                    document.getElementById('totalScoreDisplay').style.color = '#333';
+                    document.getElementById('riskLevelDisplay').innerText = '-';
+                    document.getElementById('riskLevelDisplay').style.color = '#333';
+                })
+                .finally(() => {
+                    document.getElementById('triwulanModal').style.display = 'flex';
+                });
         }
 
         function closeTriwulanModal() {

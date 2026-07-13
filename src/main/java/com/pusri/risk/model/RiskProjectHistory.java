@@ -59,6 +59,7 @@ public class RiskProjectHistory {
     
     @Column(columnDefinition = "TEXT")
     private String realisasiPengendalian; // Only populated for triwulan updates
+    private String realisasiPengendalianFile;
     
     // Risk Scoring Snapshot
     private int peluangScore;
@@ -126,6 +127,7 @@ public class RiskProjectHistory {
         
         // Override with triwulan specific data
         this.realisasiPengendalian = triwulan.getRealisasiPengendalian();
+        this.realisasiPengendalianFile = triwulan.getRealisasiPengendalianFile();
         this.peluangScore = triwulan.getPeluangScore();
         this.dampakScore = triwulan.getDampakScore();
         this.totalRiskScore = triwulan.getTotalRiskScore();
@@ -193,6 +195,8 @@ public class RiskProjectHistory {
     public void setRencanaPengendalianFile(String rencanaPengendalianFile) { this.rencanaPengendalianFile = rencanaPengendalianFile; }
     public String getRealisasiPengendalian() { return realisasiPengendalian; }
     public void setRealisasiPengendalian(String realisasiPengendalian) { this.realisasiPengendalian = realisasiPengendalian; }
+    public String getRealisasiPengendalianFile() { return realisasiPengendalianFile; }
+    public void setRealisasiPengendalianFile(String realisasiPengendalianFile) { this.realisasiPengendalianFile = realisasiPengendalianFile; }
     
     public int getPeluangScore() { return peluangScore; }
     public void setPeluangScore(int peluangScore) { this.peluangScore = peluangScore; }
