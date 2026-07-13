@@ -42,3 +42,11 @@ graphify-out/
 .agents/
 .mvn/
 
+
+### Azure Stuff ###
+azure-logs/
+azure-logs-2/
+*.zip
+azure_riskdb_backup.sql
+.azure/
+
