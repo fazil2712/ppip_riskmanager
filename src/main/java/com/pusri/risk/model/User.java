@@ -26,11 +26,13 @@ public class User {
     private String fotoProfil;
     private String departemen;
 
+    private java.time.LocalDateTime identifikasiStartDate;
     private java.time.LocalDateTime identifikasiDeadline;
     
     @Column(columnDefinition = "TEXT")
     private String identifikasiCatatan;
     
+    private java.time.LocalDateTime triwulanStartDate;
     private java.time.LocalDateTime triwulanDeadline;
     
     @Column(columnDefinition = "TEXT")
@@ -132,5 +134,21 @@ public class User {
 
     public void setTriwulanCatatan(String triwulanCatatan) {
         this.triwulanCatatan = triwulanCatatan;
+    }
+
+    public java.time.LocalDateTime getIdentifikasiStartDate() {
+        return identifikasiStartDate;
+    }
+
+    public void setIdentifikasiStartDate(java.time.LocalDateTime identifikasiStartDate) {
+        this.identifikasiStartDate = identifikasiStartDate;
+    }
+
+    public java.time.LocalDateTime getTriwulanStartDate() {
+        return triwulanStartDate;
+    }
+
+    public void setTriwulanStartDate(java.time.LocalDateTime triwulanStartDate) {
+        this.triwulanStartDate = triwulanStartDate;
     }
 }

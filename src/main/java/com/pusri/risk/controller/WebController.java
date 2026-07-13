@@ -546,6 +546,7 @@ public class WebController {
     public String setDeadline(HttpSession session,
                               @RequestParam("userId") Long userId,
                               @RequestParam("type") String type,
+                              @RequestParam("startDate") String startDateStr,
                               @RequestParam("deadline") String deadlineStr,
                               @RequestParam(value = "catatan", required = false) String catatan,
                               RedirectAttributes redirectAttributes) {
@@ -557,11 +558,14 @@ public class WebController {
         try {
             User targetUser = userService.findById(userId);
             if (targetUser != null) {
+                java.time.LocalDateTime startDate = java.time.LocalDateTime.parse(startDateStr);
                 java.time.LocalDateTime deadline = java.time.LocalDateTime.parse(deadlineStr);
                 if ("identifikasi".equalsIgnoreCase(type)) {
+                    targetUser.setIdentifikasiStartDate(startDate);
                     targetUser.setIdentifikasiDeadline(deadline);
                     targetUser.setIdentifikasiCatatan(catatan);
                 } else if ("triwulan".equalsIgnoreCase(type)) {
+                    targetUser.setTriwulanStartDate(startDate);
                     targetUser.setTriwulanDeadline(deadline);
                     targetUser.setTriwulanCatatan(catatan);
                 }
@@ -589,9 +593,11 @@ public class WebController {
             User targetUser = userService.findById(userId);
             if (targetUser != null) {
                 if ("identifikasi".equalsIgnoreCase(type)) {
+                    targetUser.setIdentifikasiStartDate(null);
                     targetUser.setIdentifikasiDeadline(null);
                     targetUser.setIdentifikasiCatatan(null);
                 } else if ("triwulan".equalsIgnoreCase(type)) {
+                    targetUser.setTriwulanStartDate(null);
                     targetUser.setTriwulanDeadline(null);
                     targetUser.setTriwulanCatatan(null);
                 }

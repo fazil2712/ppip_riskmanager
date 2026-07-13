@@ -267,7 +267,10 @@
                             <td th:text="${ro.departemen}"></td>
                             <td>
                                 <div th:if="${ro.identifikasiDeadline != null}">
-                                    Deadline: <span th:text="${#temporals.format(ro.identifikasiDeadline, 'dd MMM yyyy HH:mm')}"></span>
+                                    <div style="font-size: 12px; margin-bottom: 5px;">
+                                        <strong>Start:</strong> <span th:text="${#temporals.format(ro.identifikasiStartDate, 'dd MMM yyyy HH:mm')}"></span><br>
+                                        <strong>End:</strong> <span th:text="${#temporals.format(ro.identifikasiDeadline, 'dd MMM yyyy HH:mm')}"></span>
+                                    </div>
                                     <form th:action="@{/admin/cancel-deadline}" method="post" style="margin-top: 5px;" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan timer Identifikasi?');">
                                         <input type="hidden" name="userId" th:value="${ro.id}">
                                         <input type="hidden" name="type" value="identifikasi">
@@ -285,7 +288,10 @@
                             </td>
                             <td>
                                 <div th:if="${ro.triwulanDeadline != null}">
-                                    Deadline: <span th:text="${#temporals.format(ro.triwulanDeadline, 'dd MMM yyyy HH:mm')}"></span>
+                                    <div style="font-size: 12px; margin-bottom: 5px;">
+                                        <strong>Start:</strong> <span th:text="${#temporals.format(ro.triwulanStartDate, 'dd MMM yyyy HH:mm')}"></span><br>
+                                        <strong>End:</strong> <span th:text="${#temporals.format(ro.triwulanDeadline, 'dd MMM yyyy HH:mm')}"></span>
+                                    </div>
                                     <form th:action="@{/admin/cancel-deadline}" method="post" style="margin-top: 5px;" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan timer Triwulan?');">
                                         <input type="hidden" name="userId" th:value="${ro.id}">
                                         <input type="hidden" name="type" value="triwulan">
@@ -493,9 +499,15 @@
                     <div id="deadline-type-display" style="font-weight: bold; color: var(--primary-blue); background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd;"></div>
                 </div>
 
-                <div style="margin-bottom: 15px;">
-                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Pilih Tanggal & Waktu:</label>
-                    <input type="datetime-local" class="form-control" name="deadline" required>
+                <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Tanggal & Waktu Mulai:</label>
+                        <input type="datetime-local" class="form-control" name="startDate" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Tanggal & Waktu Berakhir:</label>
+                        <input type="datetime-local" class="form-control" name="deadline" required>
+                    </div>
                 </div>
                 
                 <div style="margin-bottom: 15px;">

@@ -94,12 +94,17 @@
             <div th:if="${successMessage}" style="color: white; background: #28a745; padding: 10px; border-radius: 6px; margin-bottom: 20px;" th:text="${successMessage}"></div>
 
             <!-- Lock Check -->
-            <div th:if="${session.loggedInUser.identifikasiDeadline == null || session.loggedInUser.identifikasiDeadline.isBefore(T(java.time.LocalDateTime).now())}" style="background-color: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #f5c6cb;">
+            <div th:if="${session.loggedInUser.identifikasiDeadline == null || session.loggedInUser.identifikasiDeadline.isBefore(T(java.time.LocalDateTime).now()) || session.loggedInUser.identifikasiStartDate.isAfter(T(java.time.LocalDateTime).now())}" style="background-color: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #f5c6cb;">
                 <h3 style="margin-top: 0;">🔒 Form Terkunci</h3>
-                <p style="margin-bottom: 0;">Tidak dapat mengisi identifikasi Risiko saat ini, hubungi admin untuk membuka kunci.</p>
+                <div th:if="${session.loggedInUser.identifikasiDeadline != null && session.loggedInUser.identifikasiStartDate != null && session.loggedInUser.identifikasiStartDate.isAfter(T(java.time.LocalDateTime).now())}">
+                    <p style="margin-bottom: 0;">Form akan terbuka pada: <strong th:text="${#temporals.format(session.loggedInUser.identifikasiStartDate, 'dd/MM/yyyy HH:mm')}"></strong> sampai <strong th:text="${#temporals.format(session.loggedInUser.identifikasiDeadline, 'dd/MM/yyyy HH:mm')}"></strong></p>
+                </div>
+                <div th:if="${session.loggedInUser.identifikasiDeadline == null || session.loggedInUser.identifikasiDeadline.isBefore(T(java.time.LocalDateTime).now())}">
+                    <p style="margin-bottom: 0;">Tidak dapat mengisi identifikasi Risiko saat ini, hubungi admin untuk membuka kunci.</p>
+                </div>
             </div>
 
-            <div th:if="${session.loggedInUser.identifikasiDeadline != null && session.loggedInUser.identifikasiDeadline.isAfter(T(java.time.LocalDateTime).now())}">
+            <div th:if="${session.loggedInUser.identifikasiDeadline != null && session.loggedInUser.identifikasiStartDate != null && session.loggedInUser.identifikasiDeadline.isAfter(T(java.time.LocalDateTime).now()) && session.loggedInUser.identifikasiStartDate.isBefore(T(java.time.LocalDateTime).now())}">
                 <!-- Timer Banner -->
                 <div style="background-color: #e2e3e5; color: #383d41; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d6d8db; text-align: center;">
                     <div style="font-weight: bold; font-size: 16px; color: var(--primary-blue);" id="identifikasiTimerContainer">
