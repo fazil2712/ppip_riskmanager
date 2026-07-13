@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>PORTAL RISIKO - Admin Panel</title>
     <link rel="stylesheet" th:href="@{/css/global.css}">
+    <!-- Flatpickr CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <style>
         .layout { display: flex; min-height: 100vh; }
         .sidebar {
@@ -256,8 +259,9 @@
                             <th>Badge ID</th>
                             <th>Nama Risk Officer</th>
                             <th>Departemen</th>
-                            <th>Identifikasi Deadline</th>
-                            <th>Triwulan Deadline</th>
+                            <th>Timer Identifikasi</th>
+                            <th>Timer Triwulan</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -278,12 +282,7 @@
                                     </form>
                                 </div>
                                 <div th:if="${ro.identifikasiDeadline == null}">
-                                    <span style="color:#6c757d; display:block; margin-bottom:5px;">Belum diatur</span>
-                                    <button type="button" class="btn-save" style="padding: 4px 8px; font-size: 11px;"
-                                            th:data-id="${ro.id}" 
-                                            th:data-nama="${ro.nama}"
-                                            th:data-type="identifikasi"
-                                            onclick="openDeadlineModal(this)">Set Deadline</button>
+                                    <span style="color:#6c757d; display:block; margin-bottom:5px; font-size:12px;">Belum diatur</span>
                                 </div>
                             </td>
                             <td>
@@ -299,13 +298,14 @@
                                     </form>
                                 </div>
                                 <div th:if="${ro.triwulanDeadline == null}">
-                                    <span style="color:#6c757d; display:block; margin-bottom:5px;">Belum diatur</span>
-                                    <button type="button" class="btn-save" style="padding: 4px 8px; font-size: 11px;"
-                                            th:data-id="${ro.id}" 
-                                            th:data-nama="${ro.nama}"
-                                            th:data-type="triwulan"
-                                            onclick="openDeadlineModal(this)">Set Deadline</button>
+                                    <span style="color:#6c757d; display:block; margin-bottom:5px; font-size:12px;">Belum diatur</span>
                                 </div>
+                            </td>
+                            <td>
+                                <button type="button" class="btn-save" style="padding: 4px 8px; font-size: 11px;"
+                                        th:data-id="${ro.id}" 
+                                        th:data-nama="${ro.nama}"
+                                        onclick="openDeadlineModal(this)">Set Deadline</button>
                             </td>
                         </tr>
                     </tbody>
@@ -490,24 +490,22 @@
         <div class="modal-content" style="max-width: 500px;">
             <span class="close" onclick="closeDeadlineModal()">&times;</span>
             <h2 style="margin-top:0;">Set Deadline untuk <span id="deadline-nama"></span></h2>
-            <form th:action="@{/admin/set-deadline}" method="post">
+            <form th:action="@{/admin/set-deadline}" method="post" id="deadlineForm">
                 <input type="hidden" id="deadline-userid" name="userId">
-                <input type="hidden" id="deadline-type" name="type">
+                <input type="hidden" id="real-startDate" name="startDate">
+                <input type="hidden" id="real-deadline" name="deadline">
                 
                 <div style="margin-bottom: 15px;">
                     <label style="display:block; font-weight:bold; margin-bottom:5px;">Deadline Untuk:</label>
-                    <div id="deadline-type-display" style="font-weight: bold; color: var(--primary-blue); background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd;"></div>
+                    <select id="deadline-type" name="type" class="form-control" required style="width: 100%; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                        <option value="identifikasi">Identifikasi Risiko</option>
+                        <option value="triwulan">Update Triwulan</option>
+                    </select>
                 </div>
 
-                <div style="margin-bottom: 15px; display: flex; gap: 10px;">
-                    <div style="flex: 1;">
-                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Tanggal & Waktu Mulai:</label>
-                        <input type="datetime-local" class="form-control" name="startDate" required>
-                    </div>
-                    <div style="flex: 1;">
-                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Tanggal & Waktu Berakhir:</label>
-                        <input type="datetime-local" class="form-control" name="deadline" required>
-                    </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Pilih Rentang Waktu (Mulai & Berakhir):</label>
+                    <input type="text" id="dateRangePicker" class="form-control" placeholder="Pilih rentang tanggal & waktu..." required>
                 </div>
                 
                 <div style="margin-bottom: 15px;">
@@ -571,17 +569,49 @@
             }
         }
         
+        let fpInstance;
+        
         function openDeadlineModal(btn) {
             document.getElementById('deadline-userid').value = btn.getAttribute('data-id');
             document.getElementById('deadline-nama').innerText = btn.getAttribute('data-nama');
-            const type = btn.getAttribute('data-type');
-            document.getElementById('deadline-type').value = type;
-            document.getElementById('deadline-type-display').innerText = type === 'identifikasi' ? 'Identifikasi Risiko' : 'Update Triwulan';
+            document.getElementById('deadline-type').value = 'identifikasi';
+            document.getElementById('dateRangePicker').value = '';
+            
+            if (!fpInstance) {
+                fpInstance = flatpickr("#dateRangePicker", {
+                    mode: "range",
+                    enableTime: true,
+                    time_24hr: true,
+                    dateFormat: "d M Y H:i"
+                });
+            } else {
+                fpInstance.clear();
+            }
+            
             document.getElementById('deadlineModal').style.display = 'block';
         }
         function closeDeadlineModal() {
             document.getElementById('deadlineModal').style.display = 'none';
         }
+        
+        document.getElementById('deadlineForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!fpInstance || fpInstance.selectedDates.length !== 2) {
+                alert("Harap pilih rentang waktu yang lengkap (Mulai dan Berakhir)!");
+                return;
+            }
+            
+            // Format to yyyy-MM-ddTHH:mm
+            function pad(n) { return n < 10 ? '0' + n : n; }
+            function formatForServer(d) {
+                return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+            }
+            
+            document.getElementById('real-startDate').value = formatForServer(fpInstance.selectedDates[0]);
+            document.getElementById('real-deadline').value = formatForServer(fpInstance.selectedDates[1]);
+            
+            this.submit();
+        });
     </script>
 </body>
 </html>

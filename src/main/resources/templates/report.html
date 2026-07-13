@@ -263,7 +263,7 @@
                         <thead>
                             <tr>
                                 <th style="width: 50px;">No</th>
-                                <th>Action</th>
+                                <th>Status</th>
                                 <th>ID Risiko</th>
                                 <th>Dibuat Oleh</th>
                                 <th>Unit Kerja</th>
@@ -279,7 +279,7 @@
                         <tbody>
                             <tr th:each="p, iterStat : ${approvedProjects}">
                                 <td th:text="${iterStat.count}">1</td>
-                                <td></td>
+                                <td th:text="${p.status}"></td>
                                 <td th:text="${p.idRisiko}">RSK-001</td>
                                 <td th:text="${p.dibuatOleh}"></td>
                                 <td th:text="${p.unitKerja}"></td>

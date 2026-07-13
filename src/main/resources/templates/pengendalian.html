@@ -138,7 +138,7 @@
 
             <div class="card" style="margin-top: 20px;">
                 <!-- Lock Check -->
-                <div th:if="${session.loggedInUser.triwulanDeadline == null || session.loggedInUser.triwulanDeadline.isBefore(T(java.time.LocalDateTime).now()) || session.loggedInUser.triwulanStartDate.isAfter(T(java.time.LocalDateTime).now())}" style="background-color: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #f5c6cb;">
+                <div th:if="${session.loggedInUser.role != 'Admin' && (session.loggedInUser.triwulanDeadline == null || session.loggedInUser.triwulanDeadline.isBefore(T(java.time.LocalDateTime).now()) || session.loggedInUser.triwulanStartDate.isAfter(T(java.time.LocalDateTime).now()))}" style="background-color: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #f5c6cb;">
                     <h3 style="margin-top: 0;">🔒 Form Terkunci</h3>
                     <div th:if="${session.loggedInUser.triwulanDeadline != null && session.loggedInUser.triwulanStartDate != null && session.loggedInUser.triwulanStartDate.isAfter(T(java.time.LocalDateTime).now())}">
                         <p style="margin-bottom: 0;">Form akan terbuka pada: <strong th:text="${#temporals.format(session.loggedInUser.triwulanStartDate, 'dd/MM/yyyy HH:mm')}"></strong> sampai <strong th:text="${#temporals.format(session.loggedInUser.triwulanDeadline, 'dd/MM/yyyy HH:mm')}"></strong></p>
@@ -148,9 +148,9 @@
                     </div>
                 </div>
 
-                <div th:if="${session.loggedInUser.triwulanDeadline != null && session.loggedInUser.triwulanStartDate != null && session.loggedInUser.triwulanDeadline.isAfter(T(java.time.LocalDateTime).now()) && session.loggedInUser.triwulanStartDate.isBefore(T(java.time.LocalDateTime).now())}">
+                <div th:if="${session.loggedInUser.role == 'Admin' || (session.loggedInUser.triwulanDeadline != null && session.loggedInUser.triwulanStartDate != null && session.loggedInUser.triwulanDeadline.isAfter(T(java.time.LocalDateTime).now()) && session.loggedInUser.triwulanStartDate.isBefore(T(java.time.LocalDateTime).now()))}">
                     <!-- Timer Banner -->
-                    <div style="background-color: #e2e3e5; color: #383d41; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d6d8db; text-align: center;">
+                    <div th:if="${session.loggedInUser.role != 'Admin'}" style="background-color: #e2e3e5; color: #383d41; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d6d8db; text-align: center;">
                         <div style="font-weight: bold; font-size: 16px; color: var(--primary-blue);" id="triwulanTimerContainer">
                             Waktu tersisa: <span id="triwulanTimer">Menghitung...</span>, Deadline: <span th:text="${#temporals.format(session.loggedInUser.triwulanDeadline, 'MMM dd, yyyy HH:mm')}"></span>
                         </div>
