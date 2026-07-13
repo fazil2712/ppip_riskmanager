@@ -369,8 +369,11 @@
 
             <!-- Triwulan Pending Table -->
             <div class="card" style="margin-bottom: 20px;" th:unless="${session.loggedInUser.role == 'RiskOfficer'}">
-                <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Menunggu Persetujuan Triwulan</h3>
-                <div style="overflow-x: auto;">
+                <h3 onclick="toggleTable('table-pending-triwulan')" style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Menunggu Persetujuan Triwulan</span>
+                    <span id="icon-table-pending-triwulan">▼</span>
+                </h3>
+                <div id="table-pending-triwulan" style="display: block; overflow-x: auto;">
                     <table>
                         <thead>
                             <tr>

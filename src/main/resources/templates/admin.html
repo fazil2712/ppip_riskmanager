@@ -255,12 +255,9 @@
                 <h3 style="margin-top:0;">Kelola Request & Deadline</h3>
                 <table>
                     <thead>
-                        <tr>
                             <th>Badge ID</th>
                             <th>Nama Risk Officer</th>
                             <th>Departemen</th>
-                            <th>Timer Identifikasi</th>
-                            <th>Timer Triwulan</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -270,39 +267,33 @@
                             <td th:text="${ro.nama}"></td>
                             <td th:text="${ro.departemen}"></td>
                             <td>
-                                <div th:if="${ro.identifikasiDeadline != null}">
-                                    <div style="font-size: 12px; margin-bottom: 5px;">
-                                        <strong>Start:</strong> <span th:text="${#temporals.format(ro.identifikasiStartDate, 'dd MMM yyyy HH:mm')}"></span><br>
-                                        <strong>End:</strong> <span th:text="${#temporals.format(ro.identifikasiDeadline, 'dd MMM yyyy HH:mm')}"></span>
+                                <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;" th:if="${ro.identifikasiDeadline != null || ro.triwulanDeadline != null}">
+                                    <div th:if="${ro.identifikasiDeadline != null}" style="border: 1px solid #ddd; padding: 8px; border-radius: 4px; background: #f8f9fa;">
+                                        <div style="font-size: 12px; margin-bottom: 5px; color: var(--primary-blue); font-weight: bold;">[Identifikasi Risiko]</div>
+                                        <div style="font-size: 11px; margin-bottom: 5px;">
+                                            <strong>Mulai:</strong> <span th:text="${#temporals.format(ro.identifikasiStartDate, 'dd MMM yyyy HH:mm')}"></span><br>
+                                            <strong>Akhir:</strong> <span th:text="${#temporals.format(ro.identifikasiDeadline, 'dd MMM yyyy HH:mm')}"></span>
+                                        </div>
+                                        <form th:action="@{/admin/cancel-deadline}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan timer Identifikasi?');">
+                                            <input type="hidden" name="userId" th:value="${ro.id}">
+                                            <input type="hidden" name="type" value="identifikasi">
+                                            <button type="submit" class="btn-primary" style="background-color: #dc3545; padding: 4px 8px; font-size: 11px; width: 100%;">Cancel Timer Identifikasi</button>
+                                        </form>
                                     </div>
-                                    <form th:action="@{/admin/cancel-deadline}" method="post" style="margin-top: 5px;" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan timer Identifikasi?');">
-                                        <input type="hidden" name="userId" th:value="${ro.id}">
-                                        <input type="hidden" name="type" value="identifikasi">
-                                        <button type="submit" class="btn-primary" style="background-color: #dc3545; padding: 4px 8px; font-size: 11px;">Cancel</button>
-                                    </form>
-                                </div>
-                                <div th:if="${ro.identifikasiDeadline == null}">
-                                    <span style="color:#6c757d; display:block; margin-bottom:5px; font-size:12px;">Belum diatur</span>
-                                </div>
-                            </td>
-                            <td>
-                                <div th:if="${ro.triwulanDeadline != null}">
-                                    <div style="font-size: 12px; margin-bottom: 5px;">
-                                        <strong>Start:</strong> <span th:text="${#temporals.format(ro.triwulanStartDate, 'dd MMM yyyy HH:mm')}"></span><br>
-                                        <strong>End:</strong> <span th:text="${#temporals.format(ro.triwulanDeadline, 'dd MMM yyyy HH:mm')}"></span>
+                                    <div th:if="${ro.triwulanDeadline != null}" style="border: 1px solid #ddd; padding: 8px; border-radius: 4px; background: #f8f9fa;">
+                                        <div style="font-size: 12px; margin-bottom: 5px; color: var(--primary-blue); font-weight: bold;">[Update Triwulan]</div>
+                                        <div style="font-size: 11px; margin-bottom: 5px;">
+                                            <strong>Mulai:</strong> <span th:text="${#temporals.format(ro.triwulanStartDate, 'dd MMM yyyy HH:mm')}"></span><br>
+                                            <strong>Akhir:</strong> <span th:text="${#temporals.format(ro.triwulanDeadline, 'dd MMM yyyy HH:mm')}"></span>
+                                        </div>
+                                        <form th:action="@{/admin/cancel-deadline}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan timer Triwulan?');">
+                                            <input type="hidden" name="userId" th:value="${ro.id}">
+                                            <input type="hidden" name="type" value="triwulan">
+                                            <button type="submit" class="btn-primary" style="background-color: #dc3545; padding: 4px 8px; font-size: 11px; width: 100%;">Cancel Timer Triwulan</button>
+                                        </form>
                                     </div>
-                                    <form th:action="@{/admin/cancel-deadline}" method="post" style="margin-top: 5px;" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan timer Triwulan?');">
-                                        <input type="hidden" name="userId" th:value="${ro.id}">
-                                        <input type="hidden" name="type" value="triwulan">
-                                        <button type="submit" class="btn-primary" style="background-color: #dc3545; padding: 4px 8px; font-size: 11px;">Cancel</button>
-                                    </form>
                                 </div>
-                                <div th:if="${ro.triwulanDeadline == null}">
-                                    <span style="color:#6c757d; display:block; margin-bottom:5px; font-size:12px;">Belum diatur</span>
-                                </div>
-                            </td>
-                            <td>
-                                <button type="button" class="btn-save" style="padding: 4px 8px; font-size: 11px;"
+                                <button type="button" class="btn-save" style="padding: 6px 12px; font-size: 12px; width: 100%;"
                                         th:data-id="${ro.id}" 
                                         th:data-nama="${ro.nama}"
                                         onclick="openDeadlineModal(this)">Set Deadline</button>
