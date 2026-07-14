@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html>
 <head>
     <title>Pengendalian Risiko - PPIP RISKmanager</title>
-    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" href="/css/global.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .modal {
@@ -78,202 +78,67 @@
     <div class="layout">
         <div class="sidebar">
             <div style="padding: 0 20px 20px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; margin-bottom: 20px;">
-                <img th:src="@{/img/logo.png}" alt="Logo" style="width: 40px; height: auto;">
+                <img src="/img/logo.png" alt="Logo" style="width: 40px; height: auto;">
                 <div style="font-weight: 700; color: var(--primary-blue); font-size: 14px; line-height: 1.2;">
                     Dana Pensiun<br>PPIP-PUSRI
                 </div>
             </div>
             <div class="profile-section" style="padding: 0 20px 20px 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #eee; margin-bottom: 20px;">
                 <div class="profile-pic" style="width: 50px; height: 50px; border-radius: 50%; background: #ddd; display: flex; justify-content: center; align-items: center; overflow: hidden; flex-shrink: 0;">
-                    <img th:if="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" th:src="@{'/uploads/' + ${session.loggedInUser.fotoProfil}}" style="width:100%; height:100%; object-fit:cover;">
-                    <span th:unless="${session.loggedInUser != null and session.loggedInUser.fotoProfil != null}" style="color:#888; font-size:24px;">👤</span>
+                    <img src="/uploads/10b93ba9-41b7-4139-a64a-91694408841e_WhatsApp Image 2026-07-10 at 10.15.27.jpeg" style="width:100%; height:100%; object-fit:cover;">
+                    
                 </div>
                 <div>
                     <div style="font-size:12px; color:var(--text-muted);">Selamat datang</div>
-                    <div style="font-weight:600; font-size:14px; margin-top:2px; color:var(--primary-blue);" th:text="${session.loggedInUser != null ? session.loggedInUser.nama : 'Unknown User'}">Hendi Aprian Lesmana</div>
-                    <div style="font-weight:600; font-size:13px; color:var(--text-muted);" th:text="${session.loggedInUser != null ? '(' + session.loggedInUser.badgeId + ')' : '(Guest)'}">(081456)</div>
+                    <div style="font-weight:600; font-size:14px; margin-top:2px; color:var(--primary-blue);">Syaipul Bachren</div>
+                    <div style="font-weight:600; font-size:13px; color:var(--text-muted);">(121939)</div>
                 </div>
             </div>
             <div style="padding: 0 20px 20px 20px; border-bottom: 1px solid #eee;">
-                <small style="color:var(--text-muted)" th:text="${session.loggedInUser != null ? session.loggedInUser.departemen : 'Unknown Dept'}">DEP.TATA KELOLA & MANAJEMEN RISIKO</small><br>
-                <small style="color:var(--primary-yellow); font-weight:bold;">Role: <span th:text="${session.loggedInUser != null ? session.loggedInUser.role : 'None'}">CORPORATE RISK OFFICER</span></small>
+                <small style="color:var(--text-muted)">Risk Management / PPIP</small><br>
+                <small style="color:var(--primary-yellow); font-weight:bold;">Role: <span>RiskOfficer</span></small>
             </div>
-            <a th:href="@{/dashboard}" class="menu-item">Dashboard</a>
+            <a href="/dashboard" class="menu-item">Dashboard</a>
             <div style="padding: 12px 20px; font-weight:600; color:#333;">RISIKO</div>
             
-            <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin}" class="menu-item" style="padding-left: 40px; color: #dc3545;">
-                ⚙️ Admin Panel
-            </a>
+            
 
-            <a th:if="${session.loggedInUser != null and session.loggedInUser.role == 'Admin'}" th:href="@{/admin/changelog}" class="menu-item" style="padding-left: 40px; color: #dc3545;">
-                📜 System Changelog
-            </a>
+            
 
-            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/identifikasi}" class="menu-item" style="padding-left: 40px; display: flex; justify-content: space-between; align-items: center;">
+            <a href="/identifikasi" class="menu-item" style="padding-left: 40px; display: flex; justify-content: space-between; align-items: center;">
                 <span>Identifikasi Risiko</span>
-                <span th:if="${hasIdentifikasiNotif}" style="background-color: red; color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold;">!</span>
+                <span style="background-color: red; color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold;">!</span>
             </a>
-            <a th:if="${session.loggedInUser.role != 'RiskOwner'}" th:href="@{/pengendalian}" class="menu-item active" style="padding-left: 40px; display: flex; justify-content: space-between; align-items: center;">
+            <a href="/pengendalian" class="menu-item active" style="padding-left: 40px; display: flex; justify-content: space-between; align-items: center;">
                 <span>Pengendalian Risiko</span>
-                <span th:if="${hasPengendalianNotif}" style="background-color: red; color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold;">!</span>
+                
             </a>
-            <a th:href="@{/report}" class="menu-item" style="padding-left: 40px; display: flex; justify-content: space-between; align-items: center;">
+            <a href="/report" class="menu-item" style="padding-left: 40px; display: flex; justify-content: space-between; align-items: center;">
                 <span>Report</span>
-                <span th:if="${hasReportNotif}" style="background-color: red; color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold;">!</span>
+                
             </a>
             
-            <a th:href="@{/logout}" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;" onclick="return confirm('Apakah Anda yakin ingin log out?');">Log Out</a>
+            <a href="/logout" class="menu-item" style="margin-top: 40px; color: #dc3545; border-top: 1px solid #eee;" onclick="return confirm('Apakah Anda yakin ingin log out?');">Log Out</a>
         </div>
 
         <div class="main-content">
             <h2 style="margin-top:0; color:var(--primary-blue);">Pengendalian Risiko (Update Triwulan)</h2>
 
-            <div th:if="${successMessage}" class="alert alert-success" style="background-color: #d4edda; color: #155724; padding: 15px; margin-bottom: 20px; border-radius: 4px; border: 1px solid #c3e6cb;">
-                <span th:text="${successMessage}"></span>
-            </div>
             
-            <div th:if="${errorMessage}" class="alert alert-danger" style="background-color: #f8d7da; color: #721c24; padding: 15px; margin-bottom: 20px; border-radius: 4px; border: 1px solid #f5c6cb;">
-                <span th:text="${errorMessage}"></span>
-            </div>
+            
+            
 
             <div class="card" style="margin-top: 20px;">
                 <!-- Lock Check -->
-                <div th:if="${session.loggedInUser.role != 'Admin' && (session.loggedInUser.triwulanDeadline == null || session.loggedInUser.triwulanDeadline.isBefore(T(java.time.LocalDateTime).now()) || session.loggedInUser.triwulanStartDate.isAfter(T(java.time.LocalDateTime).now()))}" style="background-color: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #f5c6cb;">
+                <div style="background-color: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #f5c6cb;">
                     <h3 style="margin-top: 0;">🔒 Form Terkunci</h3>
-                    <div th:if="${session.loggedInUser.triwulanDeadline != null && session.loggedInUser.triwulanStartDate != null && session.loggedInUser.triwulanStartDate.isAfter(T(java.time.LocalDateTime).now())}">
-                        <p style="margin-bottom: 0;">Form akan terbuka pada: <strong th:text="${#temporals.format(session.loggedInUser.triwulanStartDate, 'dd/MM/yyyy HH:mm')}"></strong> sampai <strong th:text="${#temporals.format(session.loggedInUser.triwulanDeadline, 'dd/MM/yyyy HH:mm')}"></strong></p>
-                    </div>
-                    <div th:if="${session.loggedInUser.triwulanDeadline == null || session.loggedInUser.triwulanDeadline.isBefore(T(java.time.LocalDateTime).now())}">
+                    
+                    <div>
                         <p style="margin-bottom: 0;">Tidak dapat mengisi Update Triwulan saat ini, hubungi admin untuk membuka kunci.</p>
                     </div>
                 </div>
 
-                <div th:if="${session.loggedInUser.role == 'Admin' || (session.loggedInUser.triwulanDeadline != null && session.loggedInUser.triwulanStartDate != null && session.loggedInUser.triwulanDeadline.isAfter(T(java.time.LocalDateTime).now()) && session.loggedInUser.triwulanStartDate.isBefore(T(java.time.LocalDateTime).now()))}">
-                    <!-- Timer Banner -->
-                    <div th:if="${session.loggedInUser.role != 'Admin'}" style="background-color: #e2e3e5; color: #383d41; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d6d8db; text-align: center;">
-                        <div style="font-weight: bold; font-size: 16px; color: var(--primary-blue);" id="triwulanTimerContainer">
-                            Waktu tersisa: <span id="triwulanTimer">Menghitung...</span>, Deadline: <span th:text="${#temporals.format(session.loggedInUser.triwulanDeadline, 'MMM dd, yyyy HH:mm')}"></span>
-                        </div>
-                        <div th:if="${hasMenunggu}" style="margin-top: 10px; font-weight: bold; font-size: 15px; color: #856404; background-color: #fff3cd; padding: 10px; border-radius: 6px; border: 1px solid #ffeeba;">
-                            ⏳ Menunggu persetujuan Risk Owner dan Admin
-                        </div>
-                        <div th:if="${session.loggedInUser.triwulanCatatan != null && !session.loggedInUser.triwulanCatatan.isEmpty()}" style="margin-top: 10px;">
-                            <a href="javascript:void(0)" onclick="document.getElementById('catatanAdminTriwulan').style.display='block'; this.style.display='none';" style="color: #dc3545; font-size: 13px; font-weight: bold; text-decoration: underline;">Lihat catatan admin</a>
-                            <div id="catatanAdminTriwulan" style="display: none; background: white; padding: 10px; border-radius: 4px; margin-top: 5px; border: 1px solid #dc3545; color: #dc3545; font-size: 13px; text-align: left;">
-                                <strong>Catatan Admin:</strong> <br>
-                                <span th:text="${session.loggedInUser.triwulanCatatan}"></span>
-                            </div>
-                        </div>
-                        <script th:inline="javascript">
-                            var tDeadlineTime = new Date(/*[[${session.loggedInUser.triwulanDeadline}]]*/).getTime();
-                            var tTimer = setInterval(function() {
-                                var now = new Date().getTime();
-                                var distance = tDeadlineTime - now;
-                                if (distance < 0) {
-                                    clearInterval(tTimer);
-                                    location.reload();
-                                } else {
-                                    var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                                    var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                                    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                                    document.getElementById("triwulanTimer").innerHTML = days + " (Hari) : " + hours + " (Jam) : " + minutes + " (menit)";
-                                }
-                            }, 1000);
-                        </script>
-                    </div>
-
-                    <h3>Daftar Proyek Risiko (Pilih untuk Update Triwulan)</h3>
-                    <div style="overflow-x: auto;">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 50px;">No</th>
-                                <th>ID Risiko</th>
-                                <th>Risk Owner</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="p, iterStat : ${requestedProjects}">
-                                <td th:text="${iterStat.count}"></td>
-                                <td th:text="${p.idRisiko}"></td>
-                                <td th:text="${p.riskOwner}"></td>
-                                <td>
-                                    <div style="display: flex; gap: 5px; flex-wrap: wrap; align-items: center;">
-                                        <button class="btn-info" style="padding: 5px 10px; font-size: 11px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" 
-                                                th:onclick="'openDetailModal(\'detail-risiko-' + ${p.id} + '\', \'Detail Project\')'">Detail</button>
-                                        
-                                        <th:block th:with="draft=${p.pengendalianRisikoList.^[approvalStatus == 'draft']}, rejected=${p.pengendalianRisikoList.^[approvalStatus == 'rejected']}">
-                                            <th:block th:if="${#lists.contains(completedProjectIds, p.id)}">
-                                                <div style="font-size: 11px; color: #28a745; font-weight: bold; padding: 5px 10px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px;">
-                                                    ✅ Sudah Disetujui
-                                                </div>
-                                            </th:block>
-                                            <th:block th:unless="${#lists.contains(completedProjectIds, p.id)}">
-                                                <button th:if="${!hasMenunggu}" class="btn-primary" style="padding: 5px 10px; font-size: 11px;" 
-                                                        th:onclick="'openTriwulanModal(' + ${p.id} + ')'">
-                                                    <span th:text="${draft != null ? 'Edit Draft' : (rejected != null ? 'Revisi Triwulan' : 'Isi Triwulan')}"></span>
-                                                </button>
-                                                <button th:if="${hasMenunggu}" class="btn-primary" style="padding: 5px 10px; font-size: 11px; background-color: #6c757d; cursor: not-allowed;" disabled>
-                                                    Menunggu Persetujuan
-                                                </button>
-                                                <div th:if="${rejected != null}" style="color: red; font-size: 11px; width: 100%;">
-                                                    <strong>Ditolak:</strong> <span th:text="${rejected.rejectionReason}"></span>
-                                                </div>
-                                            </th:block>
-                                        </th:block>
-                                    </div>
-                                    
-                                    <!-- Hidden Detail Content -->
-                                    <div th:id="'detail-risiko-' + ${p.id}" style="display:none;">
-                                        <h4 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">Sasaran Unit Kerja</h4>
-                                        <p th:text="${p.sasaranUnitKerja}"></p>
-                                        <a th:if="${p.sasaranUnitKerjaFile != null}" th:href="@{'/' + ${p.sasaranUnitKerjaFile}}" target="_blank" class="file-link">📎 Download File</a>
-                                        
-                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Eksternal</h4>
-                                        <p th:text="${p.konteksEksternal}"></p>
-                                        <a th:if="${p.konteksEksternalFile != null}" th:href="@{'/' + ${p.konteksEksternalFile}}" target="_blank" class="file-link">📎 Download File</a>
-                                        
-                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Konteks Internal</h4>
-                                        <p th:text="${p.konteksInternal}"></p>
-                                        <a th:if="${p.konteksInternalFile != null}" th:href="@{'/' + ${p.konteksInternalFile}}" target="_blank" class="file-link">📎 Download File</a>
-                                        
-                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Peristiwa Risiko</h4>
-                                        <p th:text="${p.risiko}"></p>
-                                        <a th:if="${p.risikoFile != null}" th:href="@{'/' + ${p.risikoFile}}" target="_blank" class="file-link">📎 Download File</a>
-                                        
-                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Penyebab</h4>
-                                        <p th:text="${p.penyebab}"></p>
-                                        <a th:if="${p.penyebabFile != null}" th:href="@{'/' + ${p.penyebabFile}}" target="_blank" class="file-link">📎 Download File</a>
-                                        
-                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Dampak</h4>
-                                        <p th:text="${p.dampak}"></p>
-                                        <a th:if="${p.dampakFile != null}" th:href="@{'/' + ${p.dampakFile}}" target="_blank" class="file-link">📎 Download File</a>
-                                        
-                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Existing Control</h4>
-                                        <p th:text="${p.existingControl}"></p>
-                                        <a th:if="${p.existingControlFile != null}" th:href="@{'/' + ${p.existingControlFile}}" target="_blank" class="file-link">📎 Download File</a>
-                                        
-                                        <h4 style="border-bottom:1px solid #ddd; padding-bottom:5px;">Rencana Pengendalian</h4>
-                                        <p th:text="${p.rencanaPengendalian}"></p>
-                                        <a th:if="${p.rencanaPengendalianFile != null}" th:href="@{'/' + ${p.rencanaPengendalianFile}}" target="_blank" class="file-link">📎 Download File</a>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(requestedProjects)}">
-                                <td colspan="5" style="text-align: center; color: #888;">Tidak ada permintaan update Triwulan.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div th:if="${!#lists.isEmpty(requestedProjects) && !hasMenunggu}" style="margin-top: 15px; text-align: right;">
-                    <form th:action="@{/pengendalian/submit-all-drafts}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin submit semua draft Triwulan untuk persetujuan Admin & Risk Owner?');">
-                        <button type="submit" class="btn-primary" style="padding: 10px 20px; font-size: 14px;">Submit Semua Update Triwulan</button>
-                    </form>
-                </div>
-
-                </div> <!-- Close lock wrapper -->
+                 <!-- Close lock wrapper -->
             </div>
         </div>
     </div>
@@ -284,7 +149,7 @@
             <span style="position:absolute; top:20px; right:30px; font-size:24px; cursor:pointer;" onclick="closeTriwulanModal()">&times;</span>
             <h3 style="margin-top:0; color:var(--primary-blue); border-bottom:2px solid var(--primary-blue); padding-bottom:10px;">Form Update Triwulan</h3>
             
-            <form th:action="@{/pengendalian/submit-triwulan}" method="post" enctype="multipart/form-data">
+            <form action="/pengendalian/submit-triwulan" method="post" enctype="multipart/form-data">
                 <input type="hidden" id="triwulanProjectId" name="projectId">
                 
                 <div style="display: flex; gap: 15px; margin-top: 15px;">
@@ -354,7 +219,7 @@
                 
                 <div style="text-align: right; margin-top: 20px;">
                     <button type="button" class="btn-secondary" onclick="closeTriwulanModal()" style="padding: 8px 15px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">Batal</button>
-                    <button type="submit" class="btn-primary" style="padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">Simpan Draft</button>
+                    <button type="submit" class="btn-primary" style="padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">Submit Update Triwulan</button>
                 </div>
             </form>
         </div>

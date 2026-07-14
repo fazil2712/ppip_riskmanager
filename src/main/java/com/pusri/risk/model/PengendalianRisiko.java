@@ -52,19 +52,16 @@ public class PengendalianRisiko {
             { 7, 12, 17, 22, 25}  // Peluang 5
         };
 
-        this.totalRiskScore = scoreMatrix[this.peluangScore - 1][this.dampakScore - 1];
+        String[][] levelMatrix = {
+            {"Low", "Low", "Low to Moderate", "Moderate", "High"}, // Peluang 1
+            {"Low", "Low to Moderate", "Low to Moderate", "Moderate to High", "High"}, // Peluang 2
+            {"Low", "Low to Moderate", "Moderate", "Moderate to High", "High"}, // Peluang 3
+            {"Low", "Low to Moderate", "Moderate", "Moderate to High", "High"}, // Peluang 4
+            {"Low to Moderate", "Moderate", "Moderate to High", "High", "High"} // Peluang 5
+        };
 
-        if (this.totalRiskScore >= 1 && this.totalRiskScore <= 2) {
-            this.riskLevel = "Very Low";
-        } else if (this.totalRiskScore >= 3 && this.totalRiskScore <= 5) {
-            this.riskLevel = "Low";
-        } else if (this.totalRiskScore >= 6 && this.totalRiskScore <= 11) {
-            this.riskLevel = "Moderate";
-        } else if (this.totalRiskScore >= 12 && this.totalRiskScore <= 19) {
-            this.riskLevel = "Moderate to High";
-        } else if (this.totalRiskScore >= 20 && this.totalRiskScore <= 25) {
-            this.riskLevel = "High";
-        }
+        this.totalRiskScore = scoreMatrix[this.peluangScore - 1][this.dampakScore - 1];
+        this.riskLevel = levelMatrix[this.peluangScore - 1][this.dampakScore - 1];
     }
 
     // Getters and Setters

@@ -97,8 +97,6 @@
                     <table>
                         <thead>
                             <tr>
-                                <th style="width: 50px;">No</th>
-                                <th th:if="${session.loggedInUser.role != 'RiskOfficer'}">Aksi</th>
                                 <th>ID Risiko</th>
                                 <th>Dibuat Oleh</th>
                                 <th>Unit Kerja</th>
@@ -110,30 +108,12 @@
                                 <th>Tingkat Risiko</th>
                                 <th>Status Approval</th>
                                 <th>Detail</th>
+                                <th th:if="${session.loggedInUser.role != 'RiskOfficer'}">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="p, iterStat : ${projects}">
                                 <td th:text="${iterStat.count}">1</td>
-                                <td th:if="${session.loggedInUser.role != 'RiskOfficer'}">
-                                    <div style="display: flex; flex-direction: column; gap: 5px;">
-                                        <!-- Only show Accept if they haven't already accepted -->
-                                        <form th:if="${(session.loggedInUser.role == 'Admin' && p.adminApproval != 'approved') || (session.loggedInUser.role == 'RiskOwner' && p.riskOwnerApproval != 'approved')}" 
-                                              th:action="@{/report/approve}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui ini?');">
-                                            <input type="hidden" name="id" th:value="${p.id}">
-                                            <button type="submit" class="btn-primary" style="padding: 5px; font-size: 11px; background-color: #28a745; width: 100%;">Terima</button>
-                                        </form>
-                                        
-                                        <!-- Reject button opens modal -->
-                                        <button type="button" th:if="${(session.loggedInUser.role == 'Admin' && p.adminApproval != 'rejected') || (session.loggedInUser.role == 'RiskOwner' && p.riskOwnerApproval != 'rejected')}"
-                                                class="btn-primary" style="padding: 5px; font-size: 11px; background-color: #dc3545; width: 100%;" 
-                                                th:onclick="'openRejectModal(' + ${p.id} + ')'">Tolak</button>
-
-                                        <!-- Already Approved Badge -->
-                                        <div th:if="${session.loggedInUser.role == 'Admin' && p.adminApproval == 'approved'}" style="font-size: 10px; color: #28a745; font-weight: bold; text-align: center;">✅ Disetujui Anda</div>
-                                        <div th:if="${session.loggedInUser.role == 'RiskOwner' && p.riskOwnerApproval == 'approved'}" style="font-size: 10px; color: #28a745; font-weight: bold; text-align: center;">✅ Disetujui Anda</div>
-                                    </div>
-                                </td>
                                 <td th:text="${p.idRisiko}">RSK-001</td>
                                 <td th:text="${p.dibuatOleh}"></td>
                                 <td th:text="${p.unitKerja}"></td>
@@ -241,6 +221,25 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                </td>
+                                <td th:if="${session.loggedInUser.role != 'RiskOfficer'}">
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <!-- Only show Accept if they haven't already accepted -->
+                                        <form th:if="${(session.loggedInUser.role == 'Admin' && p.adminApproval != 'approved') || (session.loggedInUser.role == 'RiskOwner' && p.riskOwnerApproval != 'approved')}" 
+                                              th:action="@{/report/approve}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui ini?');">
+                                            <input type="hidden" name="id" th:value="${p.id}">
+                                            <button type="submit" class="btn-primary" style="padding: 5px; font-size: 11px; background-color: #28a745; width: 100%;">Terima</button>
+                                        </form>
+                                        
+                                        <!-- Reject button opens modal -->
+                                        <button type="button" th:if="${(session.loggedInUser.role == 'Admin' && p.adminApproval != 'rejected') || (session.loggedInUser.role == 'RiskOwner' && p.riskOwnerApproval != 'rejected')}"
+                                                class="btn-primary" style="padding: 5px; font-size: 11px; background-color: #dc3545; width: 100%;" 
+                                                th:onclick="'openRejectModal(' + ${p.id} + ')'">Tolak</button>
+
+                                        <!-- Already Approved Badge -->
+                                        <div th:if="${session.loggedInUser.role == 'Admin' && p.adminApproval == 'approved'}" style="font-size: 10px; color: #28a745; font-weight: bold; text-align: center;">✅ Disetujui Anda</div>
+                                        <div th:if="${session.loggedInUser.role == 'RiskOwner' && p.riskOwnerApproval == 'approved'}" style="font-size: 10px; color: #28a745; font-weight: bold; text-align: center;">✅ Disetujui Anda</div>
                                     </div>
                                 </td>
                             </tr>

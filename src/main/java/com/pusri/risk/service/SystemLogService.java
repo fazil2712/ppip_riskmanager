@@ -23,4 +23,8 @@ public class SystemLogService {
     public java.util.List<SystemLog> getAllLogs() {
         return systemLogRepository.findAllByOrderByTimestampDesc();
     }
+    
+    public void clearChangelogExceptCreateUser() {
+        systemLogRepository.deleteLogsExceptCreateUser();
+    }
 }

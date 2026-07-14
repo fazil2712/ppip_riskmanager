@@ -347,6 +347,8 @@
                                         th:data-kategoriRisiko="${p.kategoriRisiko}"
                                         th:data-penyebab="${p.penyebab}"
                                         th:data-dampak="${p.dampak}"
+                                        th:data-existingcontrol="${p.existingControl}"
+                                        th:data-rencanapengendalian="${p.rencanaPengendalian}"
                                         th:data-tahun="${p.tahun}"
                                         th:data-kuartal="${p.kuartal}"
                                         th:data-peluang="${p.peluangScore}"
@@ -447,6 +449,8 @@
                     
                     <div><label>Penyebab</label><textarea class="form-control" id="edit-p-penyebab" name="penyebab" required></textarea></div>
                     <div><label>Dampak</label><textarea class="form-control" id="edit-p-dampak" name="dampak" required></textarea></div>
+                    <div><label>Existing Control</label><textarea class="form-control" id="edit-p-existingControl" name="existingControl" required></textarea></div>
+                    <div><label>Rencana Pengendalian</label><textarea class="form-control" id="edit-p-rencanaPengendalian" name="rencanaPengendalian" required></textarea></div>
                     <div>
                         <label>Status</label>
                         <select class="form-control" id="edit-p-status" name="status" required>
@@ -460,6 +464,7 @@
                     <div>
                         <label>Kuartal</label>
                         <select class="form-control" id="edit-p-kuartal" name="kuartal" required>
+                            <option value="Awal Tahun">Awal Tahun</option>
                             <option value="Q1">Q1</option>
                             <option value="Q2">Q2</option>
                             <option value="Q3">Q3</option>
@@ -536,6 +541,8 @@
             document.getElementById('edit-p-risiko').value = btn.getAttribute('data-risiko');
             document.getElementById('edit-p-penyebab').value = btn.getAttribute('data-penyebab');
             document.getElementById('edit-p-dampak').value = btn.getAttribute('data-dampak');
+            document.getElementById('edit-p-existingControl').value = btn.getAttribute('data-existingcontrol');
+            document.getElementById('edit-p-rencanaPengendalian').value = btn.getAttribute('data-rencanapengendalian');
             document.getElementById('edit-p-tahun').value = btn.getAttribute('data-tahun');
             document.getElementById('edit-p-kuartal').value = btn.getAttribute('data-kuartal');
             document.getElementById('edit-p-status').value = btn.getAttribute('data-status');

@@ -147,6 +147,23 @@ public class WebController {
             .toList();
         model.addAttribute("requestedProjects", requestedProjects);
         
+        boolean hasMenunggu = requestedProjects.stream()
+            .anyMatch(p -> p.getPengendalianRisikoList().stream()
+                .anyMatch(pr -> "menunggu".equals(pr.getApprovalStatus())));
+        model.addAttribute("hasMenunggu", hasMenunggu);
+        
+        List<Long> completedProjectIds = new java.util.ArrayList<>();
+        for (RiskProject p : requestedProjects) {
+            if (!p.isUpdateTriwulanRequested()) {
+                boolean hasPending = p.getPengendalianRisikoList().stream()
+                    .anyMatch(pr -> "menunggu".equals(pr.getApprovalStatus()) || "draft".equals(pr.getApprovalStatus()) || "rejected".equals(pr.getApprovalStatus()));
+                if (!hasPending) {
+                    completedProjectIds.add(p.getId());
+                }
+            }
+        }
+        model.addAttribute("completedProjectIds", completedProjectIds);
+        
         if (!"Admin".equals(user.getRole()) && !"RiskOwner".equals(user.getRole())) {
             List<RiskProject> notifProjects = riskProjectRepository.findByNotifPengendalianRiskOfficerTrueAndDibuatOleh(user.getNama());
             for (RiskProject p : notifProjects) {
@@ -568,6 +585,23 @@ public class WebController {
                     targetUser.setTriwulanStartDate(startDate);
                     targetUser.setTriwulanDeadline(deadline);
                     targetUser.setTriwulanCatatan(catatan);
+                    
+                    // Set updateTriwulanRequested = true for all active projects
+                    List<RiskProject> activeProjects = riskProjectRepository.findByDibuatOleh(targetUser.getNama()).stream()
+                        .filter(p -> !"Closed".equalsIgnoreCase(p.getStatus()))
+                        .toList();
+                    for (RiskProject p : activeProjects) {
+                        p.setUpdateTriwulanRequested(true);
+                        riskProjectRepository.save(p);
+                    }
+                    
+                    // Clear out old unresolved Triwulan updates from previous session
+                    List<PengendalianRisiko> drafts = pengendalianRisikoRepository.findByRiskProjectDibuatOlehAndApprovalStatus(targetUser.getNama(), "draft");
+                    List<PengendalianRisiko> menunggus = pengendalianRisikoRepository.findByRiskProjectDibuatOlehAndApprovalStatus(targetUser.getNama(), "menunggu");
+                    List<PengendalianRisiko> rejecteds = pengendalianRisikoRepository.findByRiskProjectDibuatOlehAndApprovalStatus(targetUser.getNama(), "rejected");
+                    pengendalianRisikoRepository.deleteAll(drafts);
+                    pengendalianRisikoRepository.deleteAll(menunggus);
+                    pengendalianRisikoRepository.deleteAll(rejecteds);
                 }
                 userService.updateUser(targetUser);
                 systemLogService.logAction(loggedInUser, "SET_DEADLINE", "Set deadline for " + targetUser.getNama() + " (" + type + ")");
@@ -833,17 +867,42 @@ public class WebController {
             return "redirect:/login";
         }
         
-        List<PengendalianRisiko> drafts = pengendalianRisikoRepository.findByRiskProjectDibuatOlehAndApprovalStatus(user.getNama(), "draft");
-        if (drafts.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Tidak ada draft update Triwulan yang bisa di-submit.");
+        List<RiskProject> projectsToSubmit = riskProjectRepository.findByDibuatOleh(user.getNama()).stream()
+            .filter(p -> !"Closed".equalsIgnoreCase(p.getStatus()) && p.isUpdateTriwulanRequested())
+            .toList();
+            
+        if (projectsToSubmit.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Tidak ada update Triwulan yang bisa di-submit.");
             return "redirect:/pengendalian";
         }
         
-        for (PengendalianRisiko draft : drafts) {
+        int submittedCount = 0;
+        for (RiskProject project : projectsToSubmit) {
+            PengendalianRisiko draft = pengendalianRisikoRepository.findFirstByRiskProjectIdAndApprovalStatus(project.getId(), "draft");
+            
+            // If they didn't do "Isi Triwulan", create a new empty one for them
+            if (draft == null) {
+                // Do not auto-submit if it's currently waiting or rejected (needs manual revision)
+                boolean hasPendingOrRejected = project.getPengendalianRisikoList().stream()
+                    .anyMatch(pr -> "menunggu".equals(pr.getApprovalStatus()) || "rejected".equals(pr.getApprovalStatus()));
+                if (hasPendingOrRejected) {
+                    continue;
+                }
+                
+                draft = new PengendalianRisiko();
+                draft.setRiskProject(project);
+                draft.setTriwulanKe(project.getRequestedTriwulanKe() != null ? project.getRequestedTriwulanKe() : 0);
+                draft.setTriwulanTahun(project.getRequestedTriwulanTahun() != null ? project.getRequestedTriwulanTahun() : 0);
+                draft.setPeluangScore(project.getPeluangScore());
+                draft.setDampakScore(project.getDampakScore());
+                draft.setTotalRiskScore(project.getTotalRiskScore());
+                draft.setRiskLevel(project.getRiskLevel());
+                draft.setRealisasiPengendalian("Tidak ada perubahan"); // Default note
+            }
+            
             draft.setApprovalStatus("menunggu");
             pengendalianRisikoRepository.save(draft);
             
-            RiskProject project = draft.getRiskProject();
             project.setUpdateTriwulanRequested(false);
             project.setRequestedTriwulanKe(null);
             project.setRequestedTriwulanTahun(null);
@@ -853,9 +912,10 @@ public class WebController {
             
             riskProjectHistoryRepository.save(new RiskProjectHistory(project, draft, "UPDATE_TRIWULAN_" + draft.getTriwulanKe()));
             systemLogService.logAction(user, "SUBMIT_TRIWULAN", "Submitted Triwulan Update for Project: " + project.getIdRisiko());
+            submittedCount++;
         }
         
-        redirectAttributes.addFlashAttribute("successMessage", drafts.size() + " Update Triwulan berhasil di-submit untuk persetujuan!");
+        redirectAttributes.addFlashAttribute("successMessage", submittedCount + " Update Triwulan berhasil di-submit untuk persetujuan!");
         return "redirect:/pengendalian";
     }
 
@@ -882,6 +942,9 @@ public class WebController {
             }
             
             PengendalianRisiko pr = pengendalianRisikoRepository.findFirstByRiskProjectIdAndApprovalStatus(projectId, "draft");
+            if (pr == null) {
+                pr = pengendalianRisikoRepository.findFirstByRiskProjectIdAndApprovalStatus(projectId, "rejected");
+            }
             if (pr == null) {
                 pr = new PengendalianRisiko();
                 pr.setRiskProject(project);
@@ -925,7 +988,12 @@ public class WebController {
 
             if ("approved".equals(pr.getAdminApproval()) && "approved".equals(pr.getRiskOwnerApproval())) {
                 pr.setApprovalStatus("open");
-                
+            }
+            
+            // Save PR first so the database reflects the new approval status for the pendingCount query
+            pengendalianRisikoRepository.save(pr);
+            
+            if ("open".equals(pr.getApprovalStatus())) {
                 // Update parent project with new scores
                 RiskProject project = pr.getRiskProject();
                 project.setPeluangScore(pr.getPeluangScore());
@@ -949,7 +1017,6 @@ public class WebController {
                     }
                 }
             }
-            pengendalianRisikoRepository.save(pr);
             
             RiskProject projectToNotify = pr.getRiskProject();
             projectToNotify.setNotifPengendalianRiskOfficer(true);
@@ -1037,6 +1104,17 @@ public class WebController {
         }
         model.addAttribute("logs", systemLogService.getAllLogs());
         return "changelog";
+    }
+    
+    @org.springframework.web.bind.annotation.GetMapping("/admin/changelog/clear")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public String clearChangelog(jakarta.servlet.http.HttpSession session) {
+        com.pusri.risk.model.User loggedInUser = (com.pusri.risk.model.User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"Admin".equals(loggedInUser.getRole())) {
+            return "Unauthorized";
+        }
+        systemLogService.clearChangelogExceptCreateUser();
+        return "Changelog cleared successfully!";
     }
 
     @GetMapping("/debug")
