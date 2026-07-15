@@ -68,6 +68,11 @@
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.azure</groupId>
+			<artifactId>azure-storage-blob</artifactId>
+			<version>12.25.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -77,59 +82,20 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
-				<groupId>com.microsoft.azure</groupId>
-				<artifactId>azure-webapp-maven-plugin</artifactId>
-				<version>2.13.0</version>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>3.4.0</version>
 				<configuration>
-					<schemaVersion>v2</schemaVersion>
-					<resourceGroup>riskmanager-rg</resourceGroup>
-					<appName>riskmanager-fazil</appName>
-					<pricingTier>B1</pricingTier>
-					<region>southeastasia</region>
-					<auth>
-						<type>azure_cli</type>
-					</auth>
-					<runtime>
-						<os>Linux</os>
-						<javaVersion>Java 17</javaVersion>
-						<webContainer>Java SE</webContainer>
-					</runtime>
-					<appSettings>
-						<property>
-							<name>WEBSITES_PORT</name>
-							<value>8080</value>
-						</property>
-						<property>
-							<name>DB_URL</name>
-							<value>jdbc:mysql://riskmanager-mysql.mysql.database.azure.com:3306/riskdb?useSSL=true&amp;requireSSL=false</value>
-						</property>
-						<property>
-							<name>DB_USER</name>
-							<value>riskadmin</value>
-						</property>
-						<property>
-							<name>DB_PASS</name>
-							<value>RiskManager@123</value>
-						</property>
-						<property>
-							<name>SPRING_JPA_DATABASE_PLATFORM</name>
-							<value>org.hibernate.dialect.MySQLDialect</value>
-						</property>
-						<property>
-							<name>SPRING_JPA_HIBERNATE_DDL_AUTO</name>
-							<value>update</value>
-						</property>
-					</appSettings>
-					<deployment>
-						<resources>
-							<resource>
-								<directory>${project.basedir}/target</directory>
-								<includes>
-									<include>*.jar</include>
-								</includes>
-							</resource>
-						</resources>
-					</deployment>
+					<to>
+						<image>riskmanageracr8219.azurecr.io/riskmanager:v1</image>
+						<auth>
+							<username>${env.ACR_USER}</username>
+							<password>${env.ACR_PASS}</password>
+						</auth>
+					</to>
+					<container>
+						<mainClass>com.pusri.risk.RiskmanagerApplication</mainClass>
+					</container>
 				</configuration>
 			</plugin>
 		</plugins>

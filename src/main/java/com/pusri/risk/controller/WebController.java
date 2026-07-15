@@ -31,6 +31,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 import java.time.LocalDate;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.InputStream;
 
 @Controller
 public class WebController {
@@ -52,6 +59,9 @@ public class WebController {
 
     @Autowired
     private com.pusri.risk.service.SystemLogService systemLogService;
+    
+    @Autowired
+    private com.pusri.risk.service.BlobStorageService blobStorageService;
     
     private final String UPLOAD_DIR = "uploads/";
 
@@ -138,12 +148,13 @@ public class WebController {
     @GetMapping("/pengendalian")
     public String pengendalianPage(HttpSession session, Model model) {
         User user = (User) session.getAttribute("loggedInUser");
+        if (user == null) return "redirect:/login";
         if (user == null || (!"Admin".equals(user.getRole()) && !"CORPORATE RISK OFFICER".equals(user.getRole()) && !"RiskOfficer".equals(user.getRole()))) {
             return "redirect:/login";
         }
         
         List<RiskProject> requestedProjects = riskProjectRepository.findByDibuatOleh(user.getNama()).stream()
-            .filter(p -> !"Closed".equalsIgnoreCase(p.getStatus()))
+            .filter(p -> !"Closed".equalsIgnoreCase(p.getStatus()) && "open".equalsIgnoreCase(p.getApprovalStatus()))
             .toList();
         model.addAttribute("requestedProjects", requestedProjects);
         
@@ -244,6 +255,12 @@ public class WebController {
         }
 
         RiskProject project = new RiskProject();
+        
+        if (riskProjectRepository.existsByIdRisiko(idRisiko)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "ID Risiko " + idRisiko + " sudah digunakan. Silakan gunakan ID lain.");
+            return "redirect:/identifikasi";
+        }
+
         project.setIdRisiko(idRisiko);
         project.setDibuatOleh(user.getNama());
         project.setUnitKerja(user.getDepartemen());
@@ -521,20 +538,27 @@ public class WebController {
     private String saveProjectFile(MultipartFile file, String folder) {
         if (file != null && !file.isEmpty()) {
             try {
-                String uploadDir = "uploads/" + folder + "/";
-                Path uploadPath = Paths.get(uploadDir);
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-                String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-                Path filePath = uploadPath.resolve(filename);
-                Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-                return uploadDir + filename;
+                return blobStorageService.uploadFile(file, folder);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         return null;
+    }
+    
+    @GetMapping("/uploads/**")
+    @ResponseBody
+    public ResponseEntity<Resource> downloadFile(HttpServletRequest request) {
+        String path = (String) request.getAttribute(org.springframework.web.servlet.HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+        // path is /uploads/folder/file.ext
+        InputStream is = blobStorageService.downloadFile(path);
+        if (is == null) {
+            return ResponseEntity.notFound().build();
+        }
+        InputStreamResource resource = new InputStreamResource(is);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
     
     @GetMapping("/admin")
@@ -935,7 +959,7 @@ public class WebController {
         }
 
         RiskProject project = riskProjectRepository.findById(projectId).orElse(null);
-        if (project != null) {
+        if (project != null && "open".equalsIgnoreCase(project.getApprovalStatus())) {
             if (!user.getNama().equals(project.getDibuatOleh()) && !"Admin".equals(user.getRole()) && !"CORPORATE RISK OFFICER".equals(user.getRole())) {
                 redirectAttributes.addFlashAttribute("error", "Anda tidak memiliki akses untuk submit update proyek ini.");
                 return "redirect:/pengendalian";

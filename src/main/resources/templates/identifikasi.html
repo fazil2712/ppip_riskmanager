@@ -29,10 +29,23 @@
         .accordion-item { border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; background: #fafafa; }
         .accordion-header { background: white; padding: 15px 20px; cursor: pointer; font-weight: 600; color: var(--primary-blue); display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
         .accordion-header:hover { background: #f4f6f8; }
-        .accordion-content { padding: 20px; display: none; border-top: 1px solid #e0e0e0; background: white; }
+        .accordion-content { 
+            padding: 0 20px; 
+            max-height: 0; 
+            opacity: 0; 
+            overflow: hidden; 
+            background: white; 
+            transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease, border-top 0.4s ease;
+            border-top: 0px solid transparent;
+        }
         .accordion-icon { transition: transform 0.3s ease; color: #888; font-size: 12px; }
         .accordion-item.active .accordion-icon { transform: rotate(180deg); }
-        .accordion-item.active .accordion-content { display: block; }
+        .accordion-item.active .accordion-content { 
+            max-height: 2000px; /* large enough for content */
+            opacity: 1; 
+            padding: 20px; 
+            border-top: 1px solid #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -92,6 +105,7 @@
             <h2 style="margin-top:0; color:var(--primary-blue);">Identifikasi Risiko</h2>
             
             <div th:if="${successMessage}" style="color: white; background: #28a745; padding: 10px; border-radius: 6px; margin-bottom: 20px;" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" style="color: white; background: #dc3545; padding: 10px; border-radius: 6px; margin-bottom: 20px;" th:text="${errorMessage}"></div>
 
             <!-- Lock Check -->
             <div th:if="${session.loggedInUser.role != 'Admin' && (session.loggedInUser.identifikasiDeadline == null || session.loggedInUser.identifikasiDeadline.isBefore(T(java.time.LocalDateTime).now()) || session.loggedInUser.identifikasiStartDate.isAfter(T(java.time.LocalDateTime).now()))}" style="background-color: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #f5c6cb;">
@@ -192,7 +206,7 @@
                         </script>
 
                     <div style="display: flex; flex-direction: column;">
-                        <div class="accordion-item active">
+                        <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
                                 Sasaran Unit Kerja <span class="accordion-icon">▼</span>
                             </div>
@@ -326,7 +340,7 @@
                             </div>
                         </div>
                         
-                        <div class="accordion-item active" style="margin-top: 15px; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background: #fafafa;">
+                        <div class="accordion-item" style="margin-top: 15px; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background: #fafafa;">
                             <h4 style="margin-top:0; color:var(--primary-blue); font-size:14px; margin-bottom: 10px;">Penilaian Risiko</h4>
                             <div style="display: flex; gap: 15px; margin-bottom: 10px;">
                                 <div style="flex:1;">
@@ -578,7 +592,7 @@
                         });
                     </script>
                 <div style="display: flex; flex-direction: column;">
-                    <div class="accordion-item active">
+                    <div class="accordion-item">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             Kategori Risiko <span class="accordion-icon">▼</span>
                         </div>
@@ -596,7 +610,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="accordion-item active">
+                    <div class="accordion-item">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             Risk Owner <span class="accordion-icon">▼</span>
                         </div>
@@ -607,7 +621,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="accordion-item active">
+                    <div class="accordion-item">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             Sasaran Unit Kerja <span class="accordion-icon">▼</span>
                         </div>
@@ -619,7 +633,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="accordion-item active">
+                    <div class="accordion-item">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             Konteks Eksternal <span class="accordion-icon">▼</span>
                         </div>
@@ -631,7 +645,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="accordion-item active">
+                    <div class="accordion-item">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             Konteks Internal <span class="accordion-icon">▼</span>
                         </div>
@@ -643,7 +657,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="accordion-item active">
+                    <div class="accordion-item">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             Risiko <span class="accordion-icon">▼</span>
                         </div>
@@ -655,7 +669,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="accordion-item active">
+                    <div class="accordion-item">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             Penyebab <span class="accordion-icon">▼</span>
                         </div>
@@ -667,7 +681,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="accordion-item active">
+                    <div class="accordion-item">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             Dampak <span class="accordion-icon">▼</span>
                         </div>
@@ -679,7 +693,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="accordion-item active">
+                    <div class="accordion-item">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             Existing Control <span class="accordion-icon">▼</span>
                         </div>
@@ -691,7 +705,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="accordion-item active">
+                    <div class="accordion-item">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             Rencana Pengendalian <span class="accordion-icon">▼</span>
                         </div>
@@ -703,7 +717,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="accordion-item active" style="margin-top: 15px; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background: #fafafa;">
+                    <div class="accordion-item" style="margin-top: 15px; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background: #fafafa;">
                         <h4 style="margin-top:0; color:var(--primary-blue); font-size:14px; margin-bottom: 10px;">Penilaian Risiko</h4>
                         <div style="display: flex; gap: 15px; margin-bottom: 10px;">
                             <div style="flex:1;">

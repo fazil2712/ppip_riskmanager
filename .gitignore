@@ -50,3 +50,15 @@ azure-logs-2/
 azure_riskdb_backup.sql
 .azure/
 
+### Miscellaneous / Temporaries ###
+mariadb/
+uploads_restored/
+pp/
+projects.json
+output_pengendalian.html
+report.html
+report_owner.html
+wwwroot.txt
+uploads.txt
+riskdb.sql
+update_users.sql

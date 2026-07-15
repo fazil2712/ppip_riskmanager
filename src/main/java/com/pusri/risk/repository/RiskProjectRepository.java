@@ -12,6 +12,8 @@ public interface RiskProjectRepository extends JpaRepository<RiskProject, Long> 
     List<RiskProject> findByUnitKerja(String unitKerja);
     List<RiskProject> findByRiskOwner(String riskOwner);
     
+    boolean existsByIdRisiko(String idRisiko);
+    
     List<RiskProject> findByTahun(Integer tahun);
     List<RiskProject> findByDibuatOlehAndTahun(String dibuatOleh, Integer tahun);
     List<RiskProject> findByUnitKerjaAndTahun(String unitKerja, Integer tahun);
